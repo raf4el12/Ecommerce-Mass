@@ -1,0 +1,487 @@
+/* perfil-components.css */
+
+/* User Info en sidebar */
+.user-info {
+  padding: 2rem;
+  border-bottom: 1px solid #e2e8f0;
+  text-align: center;
+}
+.user-name {
+  font-weight: 600;
+  font-size: 1.125rem;
+  margin-bottom: 0.25rem;
+  color: #1e293b;
+}
+.user-email {
+  color: #64748b;
+  font-size: 0.875rem;
+}
+
+/* Navegación sidebar */
+.navigation {
+  flex: 1;
+  padding: 1rem 0;
+}
+.menu-list {
+  list-style: none;
+  padding: 0 1rem;
+}
+.menu-item {
+  margin-bottom: 0.25rem;
+}
+.menu-link {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  color: #64748b;
+  text-decoration: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 0.875rem;
+  border: none;
+  background: none;
+  text-align: left;
+  transition: all 0.2s ease;
+}
+.menu-link:hover {
+  background: #f1f5f9;
+  color: #1e293b;
+}
+.menu-link.active {
+  background: #0033A0;
+  color: #ffffff;
+}
+.menu-icon {
+  margin-right: 0.75rem;
+  flex-shrink: 0;
+}
+
+/* Secciones principales */
+.profile-section,
+.orders-section,
+.addresses-section,
+.payments-section {
+  padding: 2rem;
+}
+
+/* Headers de sección */
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 2rem;
+}
+.header-content h2 {
+  color: #1e293b;
+  font-size: 1.875rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+.header-content p {
+  color: #64748b;
+  font-size: 0.875rem;
+}
+
+/* Botones editar/agregar */
+.edit-btn,
+.add-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: #0033A0;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+}
+.edit-btn:hover,
+.add-btn:hover {
+  background: #002266;
+  transform: translateY(-1px);
+}
+
+/* Perfil contenido */
+.profile-content {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 2rem;
+  display: flex;
+  gap: 2rem;
+  align-items: flex-start;
+}
+
+/* Formulario perfil */
+.profile-form {
+  flex: 1;
+}
+.form-row {
+  display: flex;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+.form-group {
+  flex: 1;
+}
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #374151;
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+.form-group input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+  background: #fff;
+}
+.form-group input:focus {
+  outline: none;
+  border-color: #0033A0;
+  box-shadow: 0 0 0 3px rgba(0,51,160,0.1);
+}
+.field-display {
+  padding: 0.75rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  color: #1e293b;
+  font-size: 0.875rem;
+}
+
+/* Estadísticas pedidos */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+.stat-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1.5rem;
+  text-align: center;
+}
+.stat-number {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 0.5rem;
+}
+.stat-label {
+  color: #64748b;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+/* Lista de pedidos */
+.orders-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.order-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1.5rem;
+  transition: all 0.2s ease;
+}
+.order-card:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+}
+.order-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.order-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.order-id {
+  font-weight: 600;
+  color: #1e293b;
+  font-size: 1rem;
+}
+.order-date,
+.order-items {
+  color: #64748b;
+  font-size: 0.875rem;
+}
+.order-status-section {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.5rem;
+}
+.order-status {
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.status-entregado { background: #dcfce7; color: #166534; }
+.status-en-camino { background: #fef3c7; color: #92400e; }
+.status-procesando { background: #dbeafe; color: #1e40af; }
+.order-total {
+  font-weight: 700;
+  color: #1e293b;
+  font-size: 1.125rem;
+}
+
+/* Grids direcciones y pagos */
+.addresses-grid,
+.payments-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+.address-card,
+.payment-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1.5rem;
+  transition: all 0.2s ease;
+}
+.address-card:hover,
+.payment-card:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+}
+.address-header,
+.payment-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+.address-type-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.address-type,
+.payment-type {
+  font-weight: 600;
+  color: #1e293b;
+  font-size: 1rem;
+}
+.default-badge {
+  background: #0033A0;
+  color: #fff;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  align-self: flex-start;
+}
+.address-details {
+  margin-bottom: 1rem;
+}
+.address-line {
+  color: #64748b;
+  font-size: 0.875rem;
+  margin-bottom: 0.25rem;
+}
+.payment-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.card-icon {
+  padding: 0.5rem;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.card-icon.visa { background: #1a1f71; color: #fff; }
+.card-icon.mastercard { background: #eb001b; color: #fff; }
+.payment-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.payment-number {
+  color: #64748b;
+  font-size: 0.875rem;
+}
+.payment-details {
+  margin-bottom: 1rem;
+}
+.payment-expiry {
+  color: #64748b;
+  font-size: 0.875rem;
+}
+.address-actions,
+.payment-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+.action-btn {
+  padding: 0.5rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: #fff;
+}
+.edit-action {
+  color: #0033A0;
+}
+.edit-action:hover {
+  background: #eff6ff;
+  border-color: #0033A0;
+}
+.delete-action {
+  color: #ef4444;
+}
+.delete-action:hover {
+  background: #fef2f2;
+  border-color: #ef4444;
+}
+
+/* Mobile overlay */
+.mobile-overlay {
+  display: none;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .main-content {
+    margin-left: 260px;
+  }
+  .sidebar {
+    width: 260px;
+  }
+  .profile-content {
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+  }
+  .form-row {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .stats-grid {
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  }
+  .addresses-grid,
+  .payments-grid {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 768px) {
+  .mobile-menu-toggle {
+    display: block;
+  }
+  .sidebar {
+    transform: translateX(-100%);
+    width: 280px;
+  }
+  .sidebar.mobile-open {
+    transform: translateX(0);
+  }
+  .mobile-overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 800;
+  }
+  .main-content {
+    margin-left: 0;
+  }
+  .profile-section,
+  .orders-section,
+  .addresses-section,
+  .payments-section {
+    padding: 1.5rem;
+  }
+  .profile-content {
+    padding: 1.5rem;
+    border-radius: 8px;
+  }
+  .section-header {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
+  }
+  .header-content h2 {
+    font-size: 1.5rem;
+  }
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  .order-main {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  .order-status-section {
+    align-items: flex-start;
+    flex-direction: row;
+    width: 100%;
+    justify-content: space-between;
+  }
+  .addresses-grid,
+  .payments-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+}
+@media (max-width: 480px) {
+  .profile-section,
+  .orders-section,
+  .addresses-section,
+  .payments-section {
+    padding: 1rem;
+  }
+  .profile-content {
+    padding: 1rem;
+  }
+  .header-content h2 {
+    font-size: 1.25rem;
+  }
+  .edit-btn,
+  .add-btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
+  }
+  .form-group input,
+  .field-display {
+    padding: 0.625rem;
+    font-size: 0.8rem;
+  }
+  .order-card,
+  .address-card,
+  .payment-card {
+    padding: 1rem;
+  }
+  .stat-card {
+    padding: 1rem;
+  }
+  .stat-number {
+    font-size: 1.5rem;
+  }
+}

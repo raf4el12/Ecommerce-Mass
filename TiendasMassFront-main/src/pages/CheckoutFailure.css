@@ -1,0 +1,347 @@
+:root {
+  --primary: #F7B500;
+  --success: #10b981;
+  --pending: #f59e0b;
+  --error: #ef4444;
+  --border: #e5e7eb;
+  --text-dark: #1f2937;
+  --text-muted: #6b7280;
+  --bg-light: #f9fafb;
+}
+
+.checkout-status-container.failure {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #ef4444 0%, #f87171 100%);
+  padding: 2rem 1rem;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  position: relative;
+  overflow: hidden;
+}
+
+.bg-decoration {
+  position: absolute;
+  top: -50%;
+  right: -10%;
+  width: 500px;
+  height: 500px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  filter: blur(80px);
+  z-index: 0;
+}
+
+.status-card.error {
+  background: white;
+  border-radius: 20px;
+  padding: 3rem 2rem;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+  max-width: 550px;
+  width: 100%;
+  text-align: center;
+  animation: slideUp 0.6s ease-out;
+  position: relative;
+  z-index: 1;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Icon Wrapper */
+.icon-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 2rem;
+}
+
+.status-icon.error {
+  width: 100px;
+  height: 100px;
+  color: var(--error);
+  stroke-width: 1.5;
+  animation: shake 0.5s ease-in-out;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-10px); }
+  75% { transform: translateX(10px); }
+}
+
+/* Title */
+.status-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin: 1rem 0;
+  letter-spacing: -0.5px;
+  line-height: 1.2;
+}
+
+/* Message */
+.status-message {
+  font-size: 1.05rem;
+  color: var(--error);
+  margin: 1rem 0 1.5rem;
+  line-height: 1.6;
+  font-weight: 500;
+}
+
+/* Info Box */
+.info-box.error-info {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  padding: 1.25rem;
+  border-radius: 12px;
+  margin: 1.5rem 0;
+  background: rgba(239, 68, 68, 0.1);
+  color: #7f1d1d;
+  border-left: 4px solid var(--error);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.info-box.error-info svg {
+  flex-shrink: 0;
+  color: var(--error);
+  margin-top: 0.25rem;
+}
+
+.info-box p {
+  margin: 0;
+}
+
+.info-box strong {
+  display: block;
+  margin-bottom: 0.25rem;
+  color: var(--text-dark);
+}
+
+/* Tips Box */
+.tips-box {
+  background: #fef2f2;
+  padding: 1.5rem;
+  border-radius: 12px;
+  margin: 1.5rem 0;
+  border-left: 4px solid var(--error);
+  text-align: left;
+}
+
+.tips-box h3 {
+  color: #7f1d1d;
+  font-size: 0.95rem;
+  margin: 0 0 1rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.tips-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.tips-list li {
+  color: #b91c1c;
+  margin: 0.75rem 0;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.tip-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  background: var(--error);
+  color: white;
+  border-radius: 50%;
+  font-size: 0.75rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+/* Action Buttons */
+.action-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin: 2rem 0 1.5rem;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1rem 2rem;
+  border: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.btn-primary {
+  background: var(--error);
+  color: white;
+  box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+}
+
+.btn-primary:hover {
+  background: #dc2626;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+.btn-secondary {
+  background: var(--bg-light);
+  color: var(--text-dark);
+  border: 2px solid var(--border);
+  box-shadow: none;
+}
+
+.btn-secondary:hover {
+  background: #f3f4f6;
+  border-color: #d1d5db;
+  transform: translateY(-2px);
+}
+
+/* Footer */
+.status-footer {
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.status-footer p {
+  margin: 0;
+}
+
+.status-footer strong {
+  color: var(--text-dark);
+  font-weight: 600;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .checkout-status-container.failure {
+    padding: 1rem;
+  }
+
+  .status-card.error {
+    padding: 2rem 1.5rem;
+  }
+
+  .status-title {
+    font-size: 1.5rem;
+  }
+
+  .status-icon.error {
+    width: 80px;
+    height: 80px;
+  }
+}
+
+.btn {
+  padding: 1rem 2rem;
+  border: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(245, 87, 108, 0.4);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(245, 87, 108, 0.6);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+.btn-secondary {
+  background: #f3f4f6;
+  color: #374151;
+  border: 2px solid #e5e7eb;
+}
+
+.btn-secondary:hover {
+  background: #e5e7eb;
+  border-color: #d1d5db;
+}
+
+.help-text {
+  color: #9ca3af;
+  font-size: 0.9rem;
+  margin-top: 2rem;
+  line-height: 1.5;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .checkout-failure-container {
+    padding: 1rem;
+  }
+
+  .failure-card {
+    padding: 2rem 1.5rem;
+  }
+
+  .failure-title {
+    font-size: 1.5rem;
+  }
+
+  .failure-icon {
+    width: 60px;
+    height: 60px;
+  }
+
+  .failure-message {
+    font-size: 1rem;
+  }
+
+  .btn {
+    padding: 0.875rem 1.5rem;
+    font-size: 0.95rem;
+  }
+}

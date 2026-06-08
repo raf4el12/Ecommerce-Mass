@@ -1,0 +1,127 @@
+.categories-header {
+  margin: 30px 0;
+}
+
+.categories-title {
+  font-size: 32px;
+  font-weight: bold;
+  color: #0033a0;
+  text-align: left;
+}
+
+.categories-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 30px;
+  margin-bottom: 40px;
+}
+
+.category-card {
+  background: transparent; /* Eliminado fondo gris */
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.3s;
+  outline: none;
+  user-select: none;
+  padding: 10px 0;
+  border-radius: 8px;
+  display: flex; /* Flex para centrar vertical y horizontal */
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.category-card:hover,
+.category-card.active {
+  transform: translateY(-5px);
+}
+
+.category-icon {
+  width: 120px;
+  height: 120px;
+  margin: 0 auto 15px;
+  border-radius: 50%;
+  background-color: transparent; /* Sin fondo gris */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: none; /* Removido sombra para que no parezca fondo gris */
+  transition: background-color 0.3s ease;
+  overflow: hidden;
+  position: relative; /* Para capas si necesitas */
+}
+
+/* Agregamos el fondo de color usando un pseudo-elemento */
+.category-icon.limpieza::before,
+.category-icon.cuidado::before,
+.category-icon.abarrotes::before,
+.category-icon.bebidas::before,
+.category-icon.lacteos::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  z-index: -1;
+  transition: background-color 0.3s ease;
+}
+
+.category-icon.limpieza::before {
+  background-color: #a8daff;
+}
+
+.category-icon.cuidado::before {
+  background-color: #ffdd73;
+}
+
+.category-icon.abarrotes::before {
+  background-color: #7decd3;
+}
+
+.category-icon.bebidas::before {
+  background-color: #a8daff;
+}
+
+.category-icon.lacteos::before {
+  background-color: #7decd3;
+}
+
+.category-icon img {
+  width: 100%; /* Ajustado para ocupar más espacio dentro del círculo */
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+  position: relative;
+  z-index: 1;
+}
+
+.category-name {
+  font-weight: 900;
+  color: #082EB7;
+  margin-top: 10px;
+  font-size: 20px;
+}
+
+.category-count {
+  font-size: 12px;
+  color: #666;
+  margin-top: 5px;
+}
+
+/* Responsive: menos columnas en móviles */
+@media (max-width: 600px) {
+  .categories-grid {
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 20px;
+  }
+
+  .category-icon {
+    width: 100px;
+    height: 100px;
+  }
+
+  .category-icon img {
+    width: 70%; /* Mantener proporción en móviles */
+    height: 70%;
+  }
+}

@@ -1,0 +1,12 @@
+/* Flecha izquierda */
+.slick-prev:before {
+  color: #0033a0; /* Azul oscuro */
+  font-size: 30px; /* Opcional, para hacerlas más grandes */
+}
+
+/* Flecha derecha */
+.slick-next:before {
+  color: #0033a0;
+  font-size: 30px;
+}
+

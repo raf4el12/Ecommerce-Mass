@@ -1,0 +1,565 @@
+/* Reset básico */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Headings con la tipografía de marca "Barrio Moderno" */
+.user-name,
+.section-header h2,
+.header-content h2,
+.stat-number,
+.factura-title {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  letter-spacing: -0.01em;
+}
+
+/* Contenedor principal */
+.user-profile {
+  min-height: 100vh;
+  background: #ffffff;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  color: #1e293b;
+}
+
+.header-navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 64px;
+  background: #FFD100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 2rem;
+  color: white;
+  z-index: 1000;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Botón menú móvil */
+.mobile-menu-toggle {
+  display: none;
+  position: fixed;
+  top: 1.5rem;
+  left: 1.5rem;
+  z-index: 1100;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 0.75rem;
+  color: #64748b;
+  cursor: pointer;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+.mobile-menu-toggle:hover {
+  background: #f1f5f9;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 25px -8px rgba(0, 0, 0, 0.25);
+}
+
+/* Contenedor flex: sidebar + contenido */
+.profile-container {
+  display: flex;
+  max-width: 1400px;
+  margin: 0 auto;
+  min-height: 100vh;
+  margin-top: 60px;
+}
+
+/* Barra lateral - no fixed para escritorio */
+.sidebar {
+  width: 280px;
+  background: #ffffff;
+  border-right: 1px solid #e2e8f0;
+  height: 100vh;
+  overflow-y: auto;
+  z-index: 900;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.3s ease;
+  transform: translateX(0);
+}
+
+/* Menú móvil cerrado: ocultar sidebar */
+.sidebar.mobile-open {
+  transform: translateX(0);
+}
+
+/* Información usuario en sidebar */
+.user-info {
+  padding: 2rem;
+  border-bottom: 1px solid #e2e8f0;
+  text-align: center;
+}
+
+.user-details {
+  text-align: center;
+}
+
+.user-name {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 0.25rem;
+}
+
+.user-email {
+  color: #64748b;
+  font-size: 0.875rem;
+}
+
+/* Navegación sidebar */
+.navigation {
+  flex: 1;
+  padding: 1rem 0;
+}
+
+.menu-list {
+  list-style: none;
+  padding: 0 1rem;
+}
+
+.menu-item {
+  margin-bottom: 0.25rem;
+}
+
+.menu-link {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  color: #64748b;
+  text-decoration: none;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 0.875rem;
+  border: none;
+  background: none;
+  text-align: left;
+}
+
+.menu-link:hover {
+  background: #f1f5f9;
+  color: #1e293b;
+}
+
+.menu-link.active {
+  background: #0033A0;
+  color: #ffffff;
+}
+
+.menu-icon {
+  margin-right: 0.75rem;
+  flex-shrink: 0;
+}
+
+/* Footer sidebar */
+.sidebar-footer {
+  padding: 1rem;
+  border-top: 1px solid #505255;
+}
+
+.logout-link {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  color: #ef4444;
+  text-decoration: none;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 0.875rem;
+  border: none;
+  background: none;
+  text-align: left;
+}
+.inicio {
+  color: #1e293b;
+}
+.inicio:hover {
+  color: #0033A0;
+  background-color: #e2e8f0 !important;
+}
+
+.logout-link:hover {
+  background: #fef2f2;
+}
+
+/* Contenido principal */
+.main-content {
+  flex: 1;
+  padding: 2rem;
+  overflow-y: auto;
+}
+
+/* Mobile overlay */
+.mobile-overlay {
+  display: none;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .mobile-menu-toggle {
+    display: block;
+  }
+
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    transform: translateX(-100%);
+    width: 280px;
+    height: 100vh;
+    background: #ffffff;
+    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+    z-index: 1200;
+  }
+
+  .sidebar.mobile-open {
+    transform: translateX(0);
+  }
+
+  .mobile-overlay {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.1);
+    z-index: 1099;
+    pointer-events: auto;
+  }
+
+  .main-content {
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .main-content {
+    padding: 0.75rem;
+  }
+}
+
+/* ============================================
+   ESTILOS PARA ORDERS.JSX
+   ============================================ */
+
+/* Sección de pedidos */
+.orders-section {
+  padding: 2rem;
+}
+
+/* Headers de sección */
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 2rem;
+}
+.section-header .header-content h2 {
+  color: #1e293b;
+  font-size: 1.875rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+.section-header .header-content p {
+  color: #64748b;
+  font-size: 0.875rem;
+}
+
+/* Estadísticas pedidos */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+.stat-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1.5rem;
+  text-align: center;
+}
+.stat-number {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 0.5rem;
+}
+.stat-label {
+  color: #64748b;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+/* Lista de pedidos */
+.orders-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.order-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1.5rem;
+  transition: all 0.2s ease;
+}
+.order-card:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+}
+.order-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.order-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.order-id {
+  font-weight: 600;
+  color: #1e293b;
+  font-size: 1rem;
+}
+.order-date,
+.order-items {
+  color: #64748b;
+  font-size: 0.875rem;
+}
+
+/* Botón 'ver más' dentro de orders */
+.ver-mas-btn {
+  background: #0033A0; /* azul */
+  color: #ffffff; /* letras blancas */
+  border: none;
+  padding: 0.45rem 0.8rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.12s ease;
+  box-shadow: 0 6px 18px rgba(0,51,160,0.12);
+}
+
+.ver-mas-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(0,51,160,0.16);
+  background: #002266;
+}
+
+.ver-mas-btn:active {
+  transform: translateY(0);
+}
+.order-status-section {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.5rem;
+}
+.order-status {
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.status-entregado { background: #dcfce7; color: #166534; }
+.status-en-camino { background: #fef3c7; color: #92400e; }
+.status-procesando { background: #dbeafe; color: #1e40af; }
+.order-total {
+  font-weight: 700;
+  color: #1e293b;
+  font-size: 1.125rem;
+}
+
+/* Responsive para orders */
+@media (max-width: 768px) {
+  .orders-section {
+    padding: 1.5rem;
+  }
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  .order-main {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  .order-status-section {
+    align-items: flex-start;
+    flex-direction: row;
+    width: 100%;
+    justify-content: space-between;
+  }
+}
+@media (max-width: 480px) {
+  .orders-section {
+    padding: 1rem;
+  }
+  .order-card {
+    padding: 1rem;
+  }
+  .stat-card {
+    padding: 1rem;
+  }
+  .stat-number {
+    font-size: 1.5rem;
+  }
+}
+/***************************************************
+ ******************* FACTURA MODAL *****************
+ ***************************************************/
+
+/* Overlay */
+.factura-overlay {
+  background-color: rgba(15, 23, 42, 0.55);
+  z-index: 1050;
+  backdrop-filter: blur(2px);
+}
+
+/* Dialog */
+.factura-dialog {
+  margin-top: 5vh;
+  max-width: 900px;
+}
+
+/* Contenido */
+.factura-content {
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+/* Header */
+.factura-header {
+  background: #FFD100;
+  border-bottom: none;
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Título */
+.factura-title {
+  font-weight: 900;
+  font-size: 26px;
+  color: #0033A0;
+  letter-spacing: 0.5px;
+  margin: 0;
+}
+
+/* Body */
+.factura-body {
+  padding: 1.5rem 1.75rem;
+}
+
+/* Resumen superior */
+.factura-resumen {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  background: #f8fafc;
+}
+
+.factura-bloque {
+  line-height: 1.4;
+}
+
+/* Textos */
+.factura-label {
+  margin-bottom: 0.35rem;
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+.factura-valor {
+  margin: 0;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.factura-total {
+  margin: 0;
+  font-weight: 800;
+  color: #0f172a;
+  font-size: 1.15rem;
+}
+
+/* Dirección */
+.factura-direccion {
+  border-left: 3px solid #0033A0;
+  padding-left: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+/* Subtítulo */
+.factura-subtitle {
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+/* Tabla */
+.factura-tabla {
+  font-size: 0.9rem;
+}
+
+.factura-tabla thead {
+  background: #f1f5f9;
+}
+
+.factura-tabla th {
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.factura-tabla td {
+  vertical-align: middle;
+}
+
+.factura-tabla tfoot td {
+  padding-top: 0.35rem;
+}
+
+.factura-total-row td {
+  border-top: 2px solid #e2e8f0;
+  padding-top: 0.6rem;
+}
+
+/* Footer */
+.factura-footer {
+  border-top: none;
+  padding: 0.75rem 1.75rem 1.25rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Logo */
+.factura-logo {
+  height: 28px;
+  width: auto;
+  opacity: 0.95;
+}
+
+/* Espaciado vertical */
+.mt {
+  margin-top: 0.85rem;
+}

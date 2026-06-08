@@ -1,0 +1,277 @@
+{
+  "info": {
+    "name": "TiendasMass - Mercado Pago Tests",
+    "_postman_id": "tiendas-mass-mercadopago-tests",
+    "description": "Pruebas de integración para Mercado Pago",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "preferenceId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "paymentId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Crear Preferencia de Pago",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"orderId\": \"1\",\n  \"payerEmail\": \"test@example.com\",\n  \"items\": [\n    {\n      \"title\": \"Producto Test\",\n      \"quantity\": 2,\n      \"unit_price\": 99.99\n    }\n  ]\n}"
+        },
+        "url": {
+          "raw": "http://localhost:5001/api/payments/mp/preference",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "5001",
+          "path": ["api", "payments", "mp", "preference"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Código de estado es 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Respuesta contiene ID de preferencia\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('id');",
+              "    pm.expect(jsonData.id).to.be.a('string');",
+              "    ",
+              "    // Guardar ID para usar en otras pruebas",
+              "    pm.collectionVariables.set('preferenceId', jsonData.id);",
+              "});",
+              "",
+              "pm.test(\"Respuesta contiene init_point\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('init_point');",
+              "    pm.expect(jsonData.init_point).to.be.a('string');",
+              "    pm.expect(jsonData.init_point).to.include('http');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Crear Preferencia - Sin Items",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"orderId\": \"2\",\n  \"payerEmail\": \"test@example.com\",\n  \"items\": []\n}"
+        },
+        "url": {
+          "raw": "http://localhost:5001/api/payments/mp/preference",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "5001",
+          "path": ["api", "payments", "mp", "preference"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Código de estado indica error\", function () {",
+              "    pm.expect(pm.response.code).to.be.oneOf([400, 500]);",
+              "});",
+              "",
+              "pm.test(\"Respuesta contiene error\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('error');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Crear Preferencia - Precio Inválido",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"orderId\": \"3\",\n  \"payerEmail\": \"test@example.com\",\n  \"items\": [\n    {\n      \"title\": \"Producto Gratis\",\n      \"quantity\": 1,\n      \"unit_price\": 0\n    }\n  ]\n}"
+        },
+        "url": {
+          "raw": "http://localhost:5001/api/payments/mp/preference",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "5001",
+          "path": ["api", "payments", "mp", "preference"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Código de estado indica error\", function () {",
+              "    pm.expect(pm.response.code).to.be.oneOf([400, 500]);",
+              "});",
+              "",
+              "pm.test(\"Respuesta contiene error\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('error');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Webhook - Notificación de Pago (Simulación)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"action\": \"payment.updated\",\n  \"api_version\": \"v1\",\n  \"data\": {\n    \"id\": \"{{paymentId}}\"\n  },\n  \"date_created\": \"2025-01-01T12:00:00Z\",\n  \"id\": 12345,\n  \"live_mode\": false,\n  \"type\": \"payment\",\n  \"user_id\": \"123456789\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:5001/api/payments/mp/webhook?type=payment&id={{paymentId}}",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "5001",
+          "path": ["api", "payments", "mp", "webhook"],
+          "query": [
+            {
+              "key": "type",
+              "value": "payment"
+            },
+            {
+              "key": "id",
+              "value": "{{paymentId}}"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Código de estado es 200 (webhook aceptado)\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Webhook - Notificación No Payment (Ignorada)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{}"
+        },
+        "url": {
+          "raw": "http://localhost:5001/api/payments/mp/webhook?type=plan&id=123",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "5001",
+          "path": ["api", "payments", "mp", "webhook"],
+          "query": [
+            {
+              "key": "type",
+              "value": "plan"
+            },
+            {
+              "key": "id",
+              "value": "123"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Código de estado es 200 (notificación ignorada)\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Crear Preferencia con Múltiples Items",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"orderId\": \"4\",\n  \"payerEmail\": \"cliente@test.com\",\n  \"items\": [\n    {\n      \"title\": \"Producto 1\",\n      \"quantity\": 2,\n      \"unit_price\": 50.00\n    },\n    {\n      \"title\": \"Producto 2\",\n      \"quantity\": 1,\n      \"unit_price\": 75.50\n    },\n    {\n      \"title\": \"Producto 3\",\n      \"quantity\": 3,\n      \"unit_price\": 25.99\n    }\n  ]\n}"
+        },
+        "url": {
+          "raw": "http://localhost:5001/api/payments/mp/preference",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "5001",
+          "path": ["api", "payments", "mp", "preference"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Código de estado es 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Preferencia creada exitosamente\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('id');",
+              "    pm.expect(jsonData).to.have.property('init_point');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    }
+  ]
+}
+
+
+
+
+

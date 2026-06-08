@@ -1,0 +1,368 @@
+{
+  "info": {
+    "name": "TiendasMass - Productos Tests",
+    "_postman_id": "tiendas-mass-productos-tests",
+    "description": "Pruebas de integración para el CRUD de productos",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "productId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Listar Todos los Productos",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:5001/api/products",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "5001",
+          "path": ["api", "products"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Código de estado es 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Respuesta es un array\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.be.an('array');",
+              "});",
+              "",
+              "pm.test(\"Si hay productos, tienen propiedades requeridas\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    if (jsonData.length > 0) {",
+              "        pm.expect(jsonData[0]).to.have.property('id');",
+              "        pm.expect(jsonData[0]).to.have.property('nombre');",
+              "        pm.expect(jsonData[0]).to.have.property('precio');",
+              "        pm.expect(jsonData[0]).to.have.property('stock');",
+              "    }",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Crear Producto",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nombre\": \"Producto Test\",\n  \"marca\": \"Marca Test\",\n  \"precio\": 99.99,\n  \"descripcion\": \"Descripción del producto de prueba\",\n  \"stock\": 50,\n  \"estado\": true,\n  \"categoria_id\": 1\n}"
+        },
+        "url": {
+          "raw": "http://localhost:5001/api/products",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "5001",
+          "path": ["api", "products"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Código de estado es 201\", function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "",
+              "pm.test(\"Producto creado contiene ID\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('id');",
+              "    pm.expect(jsonData.id).to.be.a('number');",
+              "    ",
+              "    // Guardar ID para usar en otras pruebas",
+              "    pm.collectionVariables.set('productId', jsonData.id);",
+              "});",
+              "",
+              "pm.test(\"Producto tiene todas las propiedades\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('nombre', 'Producto Test');",
+              "    pm.expect(jsonData).to.have.property('marca', 'Marca Test');",
+              "    pm.expect(jsonData.precio).to.equal(99.99);",
+              "    pm.expect(jsonData.stock).to.equal(50);",
+              "    pm.expect(jsonData).to.have.property('categoria');",
+              "    pm.expect(jsonData).to.have.property('estado');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Crear Producto - Faltando Campos Requeridos",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nombre\": \"Producto Incompleto\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:5001/api/products",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "5001",
+          "path": ["api", "products"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Código de estado es 400\", function () {",
+              "    pm.response.to.have.status(400);",
+              "});",
+              "",
+              "pm.test(\"Mensaje de error indica campos requeridos\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('message');",
+              "    pm.expect(jsonData.message).to.include('requeridos');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Obtener Producto por ID",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:5001/api/products/{{productId}}",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "5001",
+          "path": ["api", "products", "{{productId}}"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Código de estado es 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Producto tiene ID correcto\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    var expectedId = parseInt(pm.collectionVariables.get('productId'));",
+              "    pm.expect(jsonData.id).to.equal(expectedId);",
+              "});",
+              "",
+              "pm.test(\"Producto contiene todas las propiedades\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('nombre');",
+              "    pm.expect(jsonData).to.have.property('precio');",
+              "    pm.expect(jsonData).to.have.property('stock');",
+              "    pm.expect(jsonData).to.have.property('categoria');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Obtener Producto Inexistente",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:5001/api/products/99999",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "5001",
+          "path": ["api", "products", "99999"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Código de estado es 404\", function () {",
+              "    pm.response.to.have.status(404);",
+              "});",
+              "",
+              "pm.test(\"Mensaje indica producto no encontrado\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('message');",
+              "    pm.expect(jsonData.message).to.include('no encontrado');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Actualizar Producto",
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nombre\": \"Producto Actualizado\",\n  \"precio\": 149.99,\n  \"stock\": 75\n}"
+        },
+        "url": {
+          "raw": "http://localhost:5001/api/products/{{productId}}",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "5001",
+          "path": ["api", "products", "{{productId}}"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Código de estado es 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Producto fue actualizado correctamente\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.nombre).to.equal('Producto Actualizado');",
+              "    pm.expect(jsonData.precio).to.equal(149.99);",
+              "    pm.expect(jsonData.stock).to.equal(75);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Buscar Productos por Categoría",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:5001/api/products?categoriaId=1",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "5001",
+          "path": ["api", "products"],
+          "query": [
+            {
+              "key": "categoriaId",
+              "value": "1"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Código de estado es 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Respuesta es un array\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.be.an('array');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Buscar Productos por Texto",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:5001/api/products?q=test",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "5001",
+          "path": ["api", "products"],
+          "query": [
+            {
+              "key": "q",
+              "value": "test"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Código de estado es 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Respuesta es un array\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.be.an('array');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Eliminar Producto",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:5001/api/products/{{productId}}",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "5001",
+          "path": ["api", "products", "{{productId}}"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Código de estado es 204\", function () {",
+              "    pm.response.to.have.status(204);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    }
+  ]
+}
+

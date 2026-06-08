@@ -1,0 +1,215 @@
+.carrito-container {
+  position: absolute;
+  top: 50px;
+  right: 10px;
+  background-color: #fff;
+  padding: 18px 20px;
+  border-radius: 12px;
+  width: 320px;
+  box-shadow: 0 6px 18px rgba(0, 51, 160, 0.12);
+  color: #003366;
+  font-family: 'Montserrat', sans-serif;
+  z-index: 1000;
+
+  display: flex;
+  flex-direction: column;
+  max-height: 80vh;
+}
+
+/* Scroll interno para la lista */
+.carrito-lista-scroll {
+  overflow-y: auto;
+  max-height: 300px;
+  padding-right: 6px;
+  margin-bottom: 12px;
+}
+
+/* Título */
+.carrito-titulo {
+  font-weight: 700;
+  font-size: 1.5rem;
+  margin-bottom: 16px;
+  border-bottom: 2px solid #ffd100;
+  padding-bottom: 8px;
+  color: #003366;
+}
+
+/* Producto Item */
+.carrito-producto-item {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 14px;
+  border-bottom: 1px solid #ffd100;
+  padding-bottom: 12px;
+}
+
+.info-producto {
+  max-width: 60%;
+  color: #004080;
+}
+
+.nombre-producto {
+  font-weight: 600;
+  font-size: 1.1rem;
+  margin-bottom: 4px;
+}
+
+.precio-producto {
+  margin-bottom: 4px;
+}
+
+.acciones-producto {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+/* Botones cantidad */
+.boton-cantidad {
+  background-color: #0074d9;   /* Azul suave y moderno */
+  border: none;
+  border-radius: 6px;
+  color: #fff;
+  font-weight: 700;
+  font-size: 1.2rem;
+  cursor: pointer;
+  width: 34px;
+  height: 34px;
+  line-height: 34px;
+  text-align: center;
+  transition: background-color 0.25s ease;
+  box-shadow: 0 1px 4px rgba(0, 116, 217, 0.4);
+}
+
+.boton-cantidad:hover {
+  background-color: #005bb5;
+  box-shadow: 0 2px 8px rgba(0, 91, 181, 0.6);
+}
+
+/* Botón eliminar */
+.boton-eliminar {
+  background-color: #e04e4e; /* Rojo cálido */
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  padding: 6px 14px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: background-color 0.25s ease;
+  box-shadow: 0 1px 5px rgba(224, 78, 78, 0.4);
+}
+
+.boton-eliminar:hover {
+  background-color: #b83737;
+  box-shadow: 0 2px 10px rgba(184, 55, 55, 0.6);
+}
+
+/* Total general */
+.total-general {
+  font-weight: 700;
+  font-size: 1.2rem;
+  margin-top: 12px;
+  border-top: 2px solid #ffd100;
+  padding-top: 12px;
+  color: #003366;
+}
+
+/* Botón vaciar */
+.boton-vaciar {
+  background-color: #FFD100; /* Amarillo vibrante pero no saturado */
+  color: #0033A0;
+  padding: 11px 0;
+  border: none;
+  border-radius: 10px;
+  margin-top: 14px;
+  cursor: pointer;
+  width: 100%;
+  font-weight: 700;
+  font-size: 1rem;
+  transition: background-color 0.25s ease;
+  box-shadow: 0 2px 6px rgba(255, 209, 0, 0.5);
+}
+
+.boton-vaciar:hover {
+  background-color: #ccad00;
+  color: #fff;
+  box-shadow: 0 3px 12px rgba(204, 173, 0, 0.75);
+}
+
+/* Botón pagar */
+.boton-pagar {
+  background-color: #0033A0; /* Azul oscuro y serio */
+  color: #ffffff;
+  padding: 11px 0;
+  border: none;
+  border-radius: 10px;
+  margin-top: 10px;
+  cursor: pointer;
+  width: 100%;
+  font-weight: 700;
+  font-size: 1rem;
+  transition: background-color 0.25s ease;
+  box-shadow: 0 2px 6px rgba(0, 51, 102, 0.6);
+}
+
+.boton-pagar:hover {
+  background-color: #001f4d;
+  color: #fff;
+  box-shadow: 0 3px 12px rgba(0, 31, 77, 0.85);
+}
+
+/* RESPONSIVE */
+@media (max-width: 600px) {
+  .carrito-container {
+    position: fixed;
+    top: 60px;
+    right: 10px;
+    left: 10px;
+    width: auto;
+    max-width: none;
+    border-radius: 12px;
+    padding: 15px;
+    max-height: 70vh;
+    box-shadow: 0 8px 24px rgba(0, 51, 160, 0.25);
+  }
+
+  .carrito-lista-scroll {
+    max-height: 200px;
+  }
+
+  .carrito-producto-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .info-producto {
+    max-width: 100%;
+  }
+
+  .acciones-producto {
+    flex-direction: row;
+    margin-top: 10px;
+    gap: 10px;
+    justify-content: flex-start;
+    width: 100%;
+  }
+
+  .boton-cantidad {
+    width: 36px;
+    height: 36px;
+    font-size: 1.4rem;
+  }
+
+  .boton-eliminar {
+    padding: 8px 16px;
+    font-size: 1rem;
+  }
+
+  .boton-vaciar,
+  .boton-pagar {
+    font-size: 1.1rem;
+    padding: 12px 0;
+  }
+}

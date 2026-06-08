@@ -1,0 +1,8 @@
+/* src/components/carousel/BannerStyles.css */
+#carouselExampleAutoplaying {
+  
+  overflow: hidden; 
+}
+.carousel-item img {
+  border-radius: 0 0 40px 40px !important;
+}

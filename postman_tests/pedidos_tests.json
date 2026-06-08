@@ -1,0 +1,450 @@
+{
+  "info": {
+    "name": "TiendasMass - Pedidos Tests",
+    "_postman_id": "tiendas-mass-pedidos-tests",
+    "description": "Pruebas de integración para la gestión de pedidos",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "pedidoId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "usuarioId",
+      "value": "1",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Obtener Datos para Pedido (Helper)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// Este request ayuda a obtener los datos necesarios para calcular el monto",
+              "pm.test(\"Datos obtenidos\", function () {",
+              "    var producto = pm.response.json();",
+              "    console.log('Precio del producto:', producto.precio);",
+              "    console.log('Stock disponible:', producto.stock);",
+              "    pm.collectionVariables.set('precioProducto', producto.precio);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:5001/api/products/1",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "5001",
+          "path": ["api", "products", "1"]
+        }
+      }
+    },
+    {
+      "name": "Crear Pedido Exitoso",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"usuarioId\": 1,\n  \"direccionEnvio\": \"Calle Principal 123, Ciudad\",\n  \"metodoPagoId\": 1,\n  \"metodoEnvioId\": 1,\n  \"detalles\": [\n    {\n      \"productoId\": 1,\n      \"cantidad\": 1\n    }\n  ],\n  \"montoTotal\": 19.44\n}"
+        },
+        "url": {
+          "raw": "http://localhost:5001/api/pedidos",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "5001",
+          "path": ["api", "pedidos"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// Si falla, muestra el error completo",
+              "if (pm.response.code !== 201) {",
+              "    console.log('❌ ERROR:', pm.response.json());",
+              "    console.log('Status Code:', pm.response.code);",
+              "}",
+              "",
+              "pm.test(\"Código de estado es 201\", function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "",
+              "pm.test(\"Respuesta contiene mensaje de éxito\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('mensaje');",
+              "    pm.expect(jsonData.mensaje).to.include('éxito');",
+              "});",
+              "",
+              "pm.test(\"Respuesta contiene ID del pedido\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('pedidoId');",
+              "    pm.expect(jsonData.pedidoId).to.be.a('number');",
+              "    ",
+              "    // Guardar ID para usar en otras pruebas",
+              "    pm.collectionVariables.set('pedidoId', jsonData.pedidoId);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        },
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "// CALCULADORA DE MONTO TOTAL",
+              "console.log('═══════════════════════════════════════');",
+              "console.log('📊 CÁLCULO DEL MONTO TOTAL');",
+              "console.log('═══════════════════════════════════════');",
+              "",
+              "// PASO 1: Define tus valores reales aquí",
+              "const PRECIO_PRODUCTO = 100;  // ← CAMBIA ESTO por el precio real de tu producto ID 1",
+              "const CANTIDAD = 1;",
+              "const PRECIO_ENVIO = 10;      // ← CAMBIA ESTO por el precio de tu método de envío ID 1",
+              "const COMISION_PAGO = 0;      // ← CAMBIA ESTO por la comisión % de tu método de pago ID 1",
+              "",
+              "// PASO 2: Cálculos automáticos",
+              "const subtotal = PRECIO_PRODUCTO * CANTIDAD;",
+              "const impuestos = Math.round(subtotal * 0.08 * 100) / 100;",
+              "const envio = PRECIO_ENVIO;",
+              "const base = subtotal + impuestos + envio;",
+              "const comision = Math.round(base * (COMISION_PAGO / 100) * 100) / 100;",
+              "const montoTotal = Math.round((subtotal + impuestos + envio + comision) * 100) / 100;",
+              "",
+              "// PASO 3: Mostrar cálculos",
+              "console.log('Subtotal:', subtotal, 'PEN');",
+              "console.log('Impuestos (8%):', impuestos, 'PEN');",
+              "console.log('Envío:', envio, 'PEN');",
+              "console.log('Comisión (' + COMISION_PAGO + '%):', comision, 'PEN');",
+              "console.log('───────────────────────────────────────');",
+              "console.log('💰 MONTO TOTAL:', montoTotal, 'PEN');",
+              "console.log('═══════════════════════════════════════');",
+              "console.log('');",
+              "console.log('⚠️ COPIA ESTE VALOR AL CAMPO montoTotal:');",
+              "console.log(montoTotal);",
+              "console.log('');"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Crear Pedido - Faltando Usuario",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"usuarioId\": 99999,\n  \"direccionEnvio\": \"Calle Principal 123\",\n  \"metodoPagoId\": 1,\n  \"metodoEnvioId\": 1,\n  \"detalles\": [\n    {\n      \"productoId\": 1,\n      \"cantidad\": 1\n    }\n  ],\n  \"montoTotal\": 100\n}"
+        },
+        "url": {
+          "raw": "http://localhost:5001/api/pedidos",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "5001",
+          "path": ["api", "pedidos"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Código de estado es 404\", function () {",
+              "    pm.response.to.have.status(404);",
+              "});",
+              "",
+              "pm.test(\"Mensaje indica error de usuario\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('error');",
+              "    pm.expect(jsonData.error).to.include('Usuario');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Crear Pedido - Sin Productos",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"usuarioId\": 1,\n  \"direccionEnvio\": \"Calle Principal 123\",\n  \"metodoPagoId\": 1,\n  \"metodoEnvioId\": 1,\n  \"detalles\": [],\n  \"montoTotal\": 0\n}"
+        },
+        "url": {
+          "raw": "http://localhost:5001/api/pedidos",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "5001",
+          "path": ["api", "pedidos"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Código de estado es 400\", function () {",
+              "    pm.response.to.have.status(400);",
+              "});",
+              "",
+              "pm.test(\"Mensaje indica error en el monto\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('error');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Listar Todos los Pedidos",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:5001/api/pedidos",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "5001",
+          "path": ["api", "pedidos"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Código de estado es 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Respuesta es un array\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.be.an('array');",
+              "});",
+              "",
+              "pm.test(\"Pedidos tienen relaciones cargadas\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    if (jsonData.length > 0) {",
+              "        pm.expect(jsonData[0]).to.have.property('usuario');",
+              "        pm.expect(jsonData[0]).to.have.property('detallesPedidos');",
+              "        pm.expect(jsonData[0]).to.have.property('metodoPago');",
+              "        pm.expect(jsonData[0]).to.have.property('shippingMethod');",
+              "    }",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Obtener Pedido por ID",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:5001/api/pedidos/1",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "5001",
+          "path": ["api", "pedidos", "1"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Código de estado es 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Pedido contiene todas las relaciones\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('id');",
+              "    pm.expect(jsonData).to.have.property('usuario');",
+              "    pm.expect(jsonData).to.have.property('detallesPedidos');",
+              "    pm.expect(jsonData).to.have.property('metodoPago');",
+              "    pm.expect(jsonData).to.have.property('estado');",
+              "    pm.expect(jsonData).to.have.property('montoTotal');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Obtener Pedidos por Usuario",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:5001/api/pedidos/usuario/{{usuarioId}}",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "5001",
+          "path": ["api", "pedidos", "usuario", "{{usuarioId}}"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Código de estado es 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Respuesta contiene información del usuario\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('usuario');",
+              "    pm.expect(jsonData.usuario).to.have.property('id');",
+              "    pm.expect(jsonData.usuario).to.have.property('nombre');",
+              "});",
+              "",
+              "pm.test(\"Respuesta contiene array de pedidos\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('pedidos');",
+              "    pm.expect(jsonData.pedidos).to.be.an('array');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Actualizar Estado del Pedido",
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"estado\": \"confirmado\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:5001/api/pedidos/{{pedidoId}}",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "5001",
+          "path": ["api", "pedidos", "{{pedidoId}}"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Código de estado es 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Estado del pedido fue actualizado\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('estado');",
+              "    pm.expect(jsonData.estado).to.equal('confirmado');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Obtener Estadísticas de Pedidos",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:5001/api/pedidos/estadisticas",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "5001",
+          "path": ["api", "pedidos", "estadisticas"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Código de estado es 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Respuesta contiene estadísticas completas\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('totalPedidos');",
+              "    pm.expect(jsonData).to.have.property('ventasTotales');",
+              "    pm.expect(jsonData).to.have.property('estadisticasPorEstado');",
+              "    pm.expect(jsonData).to.have.property('totalArticulos');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Eliminar Pedido",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:5001/api/pedidos/{{pedidoId}}",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "5001",
+          "path": ["api", "pedidos", "{{pedidoId}}"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Código de estado es 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Mensaje confirma eliminación\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('mensaje');",
+              "    pm.expect(jsonData.mensaje).to.include('eliminado');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    }
+  ]
+}
+

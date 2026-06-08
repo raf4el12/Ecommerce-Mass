@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: tiendasmass_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: tiendasmass
+      MYSQL_USER: mass_user
+      MYSQL_PASSWORD: mass_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    command: --default-authentication-plugin=mysql_native_password
+
+volumes:
+  mysql_data:

@@ -1,0 +1,116 @@
+{
+  "info": {
+    "name": "Subcategorías API Tests",
+    "description": "Colección de pruebas para la API de subcategorías",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Subcategorías",
+      "item": [
+        {
+          "name": "Obtener todas las subcategorías",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5001/api/subcategorias",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5001",
+              "path": ["api", "subcategorias"]
+            }
+          }
+        },
+        {
+          "name": "Obtener subcategorías por categoría",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5001/api/subcategorias/categoria/1",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5001",
+              "path": ["api", "subcategorias", "categoria", "1"]
+            }
+          }
+        },
+        {
+          "name": "Obtener subcategoría por ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5001/api/subcategorias/1",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5001",
+              "path": ["api", "subcategorias", "1"]
+            }
+          }
+        },
+        {
+          "name": "Crear nueva subcategoría",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Laptops\",\n  \"descripcion\": \"Computadoras portátiles de alta gama\",\n  \"categoriaId\": 1,\n  \"estado\": 1\n}"
+            },
+            "url": {
+              "raw": "http://localhost:5001/api/subcategorias",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5001",
+              "path": ["api", "subcategorias"]
+            }
+          }
+        },
+        {
+          "name": "Actualizar subcategoría",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Laptops Gaming\",\n  \"descripcion\": \"Computadoras portátiles para gaming\",\n  \"estado\": 1\n}"
+            },
+            "url": {
+              "raw": "http://localhost:5001/api/subcategorias/1",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5001",
+              "path": ["api", "subcategorias", "1"]
+            }
+          }
+        },
+        {
+          "name": "Eliminar subcategoría",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5001/api/subcategorias/1",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5001",
+              "path": ["api", "subcategorias", "1"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
