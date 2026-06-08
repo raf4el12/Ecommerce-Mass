@@ -38,5 +38,11 @@ Thumbs.db
 !.agents/skills/
 .agents/skills/*
 !.agents/skills/solid-clean-arch-migration/
+!.agents/skills/repository-architect/
+!.agents/skills/service-migrator/
+!.agents/skills/di-wiring/
+!.agents/skills/api-unifier/
+!.agents/skills/component-splitter/
+!.agents/skills/cleanup-engineer/
 .antigravitycli/
 .claude/
