@@ -1,0 +1,12 @@
+{
+  "version": "1.0.0",
+  "organization": "TiendasMass",
+  "date": "June 2026",
+  "abstract": "Operating procedure for migrating the TiendasMass platform (Express + TypeORM + MySQL backend, React + Vite frontend) to Clean Architecture under SOLID principles. Drives the 7-phase incremental refactor defined in SOLID_CLEAN_ARCH_ROADMAP.md: preparation, repository layer (DIP/SRP), service layer + thin controllers, dependency injection with tsyringe, unified frontend Axios client, container/presentational separation, and cleanup + tests. Enforces backward-compatibility (no route/JSON/UI changes), one-module-per-commit, and a validation gate after every module and phase.",
+  "references": [
+    "SOLID_CLEAN_ARCH_ROADMAP.md",
+    "https://github.com/microsoft/tsyringe",
+    "https://zod.dev",
+    "https://typeorm.io"
+  ]
+}

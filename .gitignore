@@ -33,6 +33,10 @@ Thumbs.db
 *.swp
 
 # ===== Herramientas locales / agentes =====
-.agents/
+# Ignorar skills de terceros, pero versionar las propias del proyecto
+.agents/*
+!.agents/skills/
+.agents/skills/*
+!.agents/skills/solid-clean-arch-migration/
 .antigravitycli/
 .claude/
