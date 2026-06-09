@@ -612,7 +612,7 @@ Si durante el refactor encuentras:
 
 | Fase | Estado | Iniciado | Completado |
 |------|--------|----------|------------|
-| 0 — Preparación | 🔲 Pendiente | — | — |
+| 0 — Preparación | ✅ Completado | 2026-06-09 | 2026-06-09 |
 | 1 — Repositorios | 🔲 Pendiente | — | — |
 | 2 — Servicios + Controllers | 🔲 Pendiente | — | — |
 | 3 — Dependency Injection | 🔲 Pendiente | — | — |
@@ -622,4 +622,4 @@ Si durante el refactor encuentras:
 
 ---
 
-*Documento generado el 2026-06-08. Última actualización: Fase 0.*
+*Documento generado el 2026-06-08. Última actualización: 2026-06-09 — Fase 0 completada (branch `refactor/clean-arch`).*
