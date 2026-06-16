@@ -4,6 +4,7 @@ import { PackageX } from 'lucide-react';
 import { useCarrito } from '../../context/carContext';
 import ProductCard from './productCard';
 import SubcategoriaFilter from '../SubcategoriaFilter';
+import Pagination from '../ui/Pagination';
 
 const API_URL = "http://localhost:5001";
 
@@ -24,6 +25,8 @@ const Productos = ({ categoriaId, onProductClick }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [subcategoriaId, setSubcategoriaId] = useState('');
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const { agregarProducto } = useCarrito();
 
   useEffect(() => {
@@ -35,10 +38,19 @@ const Productos = ({ categoriaId, onProductClick }) => {
         const params = [];
         if (categoriaId) params.push(`categoriaId=${categoriaId}`);
         if (subcategoriaId) params.push(`subcategoriaId=${subcategoriaId}`);
+        params.push(`page=${page}`);
+        params.push(`limit=12`);
+        
         if (params.length > 0) url += '?' + params.join('&');
 
         const res = await axios.get(url);
-        setProductos(res.data);
+        if (res.data && res.data.data) {
+          setProductos(res.data.data);
+          setTotalPages(res.data.totalPages);
+        } else {
+          setProductos(res.data);
+          setTotalPages(1);
+        }
       } catch (err) {
         console.error('Error al obtener productos:', err);
         setError('No pudimos cargar los productos. Intenta nuevamente.');
@@ -48,11 +60,16 @@ const Productos = ({ categoriaId, onProductClick }) => {
     };
 
     fetchProductos();
-  }, [categoriaId, subcategoriaId]);
+  }, [categoriaId, subcategoriaId, page]);
 
   useEffect(() => {
     setSubcategoriaId('');
+    setPage(1);
   }, [categoriaId]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [subcategoriaId]);
 
   const gridClass = 'grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-gutter';
 
@@ -86,16 +103,24 @@ const Productos = ({ categoriaId, onProductClick }) => {
       )}
 
       {!loading && !error && productos.length > 0 && (
-        <div className={gridClass}>
-          {productos.map((producto) => (
-            <ProductCard
-              key={producto.id}
-              producto={producto}
-              onAdd={agregarProducto}
-              onClick={() => onProductClick && onProductClick(producto)}
-              showCategoria={!categoriaId}
-            />
-          ))}
+        <div className="flex flex-col">
+          <div className={gridClass}>
+            {productos.map((producto) => (
+              <ProductCard
+                key={producto.id}
+                producto={producto}
+                onAdd={agregarProducto}
+                onClick={() => onProductClick && onProductClick(producto)}
+                showCategoria={!categoriaId}
+              />
+            ))}
+          </div>
+          
+          <Pagination 
+            currentPage={page} 
+            totalPages={totalPages} 
+            onPageChange={setPage} 
+          />
         </div>
       )}
     </div>
