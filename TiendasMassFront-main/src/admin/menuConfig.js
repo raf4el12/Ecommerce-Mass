@@ -10,6 +10,7 @@ import {
   Store,
   Database,
   Lock,
+  ClipboardList
 } from 'lucide-react';
 
 export const adminMenuItems = [
@@ -25,6 +26,7 @@ export const adminMenuItems = [
   { to: '/admin/tiendas',       label: 'Tiendas',         icon: Store,       modulo: 'TIENDAS' },
   { to: '/admin/tabla-maestra', label: 'Tabla Maestra',   icon: Database,    modulo: 'MASTER_TABLE' },
   { to: '/admin/permisos',      label: 'Permisos',        icon: Lock,        modulo: 'MASTER_TABLE' },
+  { to: '/admin/kardex',        label: 'Kardex',          icon: ClipboardList, modulo: 'PRODUCTOS' },
 ];
 
 export const BOTTOM_NAV_MODULES = ['DASHBOARD', 'PRODUCTOS', 'PEDIDOS'];
