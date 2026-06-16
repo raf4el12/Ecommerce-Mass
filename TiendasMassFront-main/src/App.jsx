@@ -32,6 +32,7 @@ import GestionTienda from './admin/components/GestionTienda';
 import GestionMasterTable from './admin/components/GestionMasterTable'; 
 import GestionPermisos from './admin/components/GestionPermisos'; 
 import AdminLogin from './admin/components/AdminLogin'; 
+import GestionKardex from './admin/components/GestionKardex';
 
 import { initMercadoPago } from '@mercadopago/sdk-react';
 
@@ -110,6 +111,7 @@ function App() {
               <Route path="tabla-maestra" element={<GestionMasterTable />} /> {/* ✅ NUEVO */}
               {/* === Ruta para gestionar permisos por rol - Asigna módulos y acciones a roles === */}
               <Route path="permisos" element={<GestionPermisos />} /> {/* ✅ NUEVO PARA PERMISOS */}
+              <Route path="kardex" element={<GestionKardex />} />
             </Route>
 
             {/* ==================== */}
