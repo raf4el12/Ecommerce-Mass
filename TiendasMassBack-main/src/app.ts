@@ -28,7 +28,7 @@ import clienteRoutes from "./routes/cliente.routes";
 import { TipoCliente } from "./entities/TipoCliente.entity";
 import masterTableRoutes from "./routes/masterTable.routes";
 import permisosRoutes from "./routes/permisos.routes";
-
+import kardexRoutes from "./routes/kardex.routes";
 
 // === MERCADO PAGO ===
 import mpRoutes from "./routes/payments.mp"; // /preference y /preference/health
@@ -86,7 +86,7 @@ app.use("/api", clienteRoutes);
 app.use("/api/master-table", masterTableRoutes);
 //rutas nuevas para roles asignados
 app.use("/api/permisos", permisosRoutes);
-
+app.use("/api/kardex", kardexRoutes);
 
 app.get("/", (_req, res) => {
   res.send("🚀 Bienvenido a TiendasMass API. Backend corriendo con éxito.");
