@@ -17,19 +17,21 @@ metadata:
 
 # Orchestrator: SOLID + Clean Architecture Migration
 
-This is the **coordinator agent** for the phased refactor. It reads the roadmap, delegates work to specialized sub-agents, validates results, and reports progress.
+This is the **coordinator** for the phased refactor. It runs in the main conversation, reads the roadmap, delegates each phase to a real **subagent** (via the `Agent` tool), validates results, and reports progress.
+
+The six specialists are real Claude Code subagents defined in `.claude/agents/` (`repository-architect`, `service-migrator`, `di-wiring`, `api-unifier`, `component-splitter`, `cleanup-engineer`). Launch them with the `Agent` tool using their `subagent_type`. A subagent cannot spawn another subagent, so all delegation happens here in the main thread.
 
 ## Multi-Agent Architecture
 
 ```
-Orchestrator (this skill)
+Orchestrator (this skill, main thread)
   ├── Phase 0 (Preparation) → executes directly
-  ├── Phase 1 (Repository Architect) → delegates to repository-architect
-  ├── Phase 2 (Service Migrator)     → delegates to service-migrator
-  ├── Phase 3 (DI Wiring)           → delegates to di-wiring
-  ├── Phase 4 (API Unifier)         → delegates to api-unifier
-  ├── Phase 5 (Component Splitter)  → delegates to component-splitter
-  └── Phase 6 (Cleanup Engineer)    → delegates to cleanup-engineer
+  ├── Phase 1 → Agent(subagent_type="repository-architect")
+  ├── Phase 2 → Agent(subagent_type="service-migrator")
+  ├── Phase 3 → Agent(subagent_type="di-wiring")
+  ├── Phase 4 → Agent(subagent_type="api-unifier")
+  ├── Phase 5 → Agent(subagent_type="component-splitter")
+  └── Phase 6 → Agent(subagent_type="cleanup-engineer")
 ```
 
 ## Prime Directive
@@ -47,28 +49,31 @@ Orchestrator (this skill)
    - `cd /home/rafael/TIENDAS_MASS_ADMIN/TiendasMassFront-main && npm run dev &`
 5. Capture a baseline: hit key endpoints and note the response shapes so you can diff after.
 
-## Delegation to Sub-Agents
+## Delegation to Subagents
 
-When a phase corresponds to a sub-agent skill:
+When a phase corresponds to a specialist, launch it with the `Agent` tool:
 
-1. **Read that skill's SKILL.md** for its contract, scope, and patterns.
-2. **Provide the sub-agent with:**
-   - The exact phase and module list to process
-   - Any interfaces or types already defined by previous phases
-   - The validation gates it must pass
-3. **Wait for completion** — do NOT parallelize phases with sequential dependencies (e.g., Phase 3 depends on Phase 2).
-4. **Run the validation gate** after each module/phase.
-5. **Report results** back to this orchestrator.
+1. **Call `Agent`** with the matching `subagent_type` (e.g. `repository-architect`). The subagent's full contract lives in its `.claude/agents/*.md` definition — you don't need to restate it; just give it the job.
+2. **In the `prompt`, provide:**
+   - The exact phase and the module list to process
+   - Any interfaces/types already produced by previous phases
+   - The validation gate it must pass before reporting done
+3. **For independent modules within a phase, launch multiple subagents in parallel** (multiple `Agent` calls in one turn, or `isolation: "worktree"` per agent to avoid file collisions), then reconcile.
+4. **Wait for completion** of a phase before starting the next — never parallelize phases that have a sequential dependency.
+5. **Run the validation gate** yourself after each phase, then update the roadmap.
 
 ### Parallelization Rules
 
-| Can parallelize | Cannot parallelize |
+| Can parallelize (multiple `Agent` calls) | Cannot parallelize (sequential `Agent` calls) |
 |----------------|-------------------|
 | Modules within Phase 1 (repos for independent entities) | Phase 1 → Phase 2 (services need repos) |
 | Modules within Phase 2 (services for independent modules) | Phase 2 → Phase 3 (DI needs services) |
 | Modules within Phase 4 (independent API modules) | Phase 3 → Phase 4 (frontend is independent) |
 | Modules within Phase 5 (independent admin components) | Phase 4 → Phase 5 (API layer needed first) |
+| | Phase 3 (DI wiring) is one coherent pass — keep it single-agent |
 | | Phase 6 is last (needs everything settled) |
+
+> Tip: when running several subagents in parallel on the backend, give each `isolation: "worktree"` so they don't fight over `app.ts`/`container.ts`; merge their branches before the phase validation gate.
 
 ## Phase Order (Do Not Skip Ahead)
 

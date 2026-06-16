@@ -12,8 +12,10 @@ export class ProductController {
       const categoriaId = req.query.categoriaId as string;
       const subcategoriaId = req.query.subcategoriaId as string;
       const searchQuery = req.query.q as string;
+      const page = req.query.page ? parseInt(req.query.page as string) : undefined;
+      const limit = req.query.limit ? parseInt(req.query.limit as string) : undefined;
       
-      const products = await productoService.getAll(categoriaId, subcategoriaId, searchQuery);
+      const products = await productoService.getAll(categoriaId, subcategoriaId, searchQuery, page, limit);
       res.json(products);
     } catch (error) {
       next(error);

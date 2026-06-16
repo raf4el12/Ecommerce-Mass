@@ -46,7 +46,7 @@ export class ProductoService {
     };
   };
 
-  public async getAll(categoriaId?: string, subcategoriaId?: string, searchQuery?: string) {
+  public async getAll(categoriaId?: string, subcategoriaId?: string, searchQuery?: string, page?: number, limit?: number) {
     const baseQuery = this.productRepository
       .createQueryBuilder('producto')
       .distinct(true)
@@ -69,8 +69,21 @@ export class ProductoService {
       );
     }
 
-    const products = await baseQuery.getMany();
-    return products.map(this.normalizeProduct);
+    if (page && limit) {
+      const skip = (page - 1) * limit;
+      baseQuery.skip(skip).take(limit);
+      const [products, total] = await baseQuery.getManyAndCount();
+      return {
+        data: products.map(this.normalizeProduct),
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit)
+      };
+    } else {
+      const products = await baseQuery.getMany();
+      return products.map(this.normalizeProduct);
+    }
   }
 
   public async getById(id: number) {
