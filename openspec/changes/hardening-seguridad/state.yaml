@@ -1,0 +1,45 @@
+change: hardening-seguridad
+artifact_store: hybrid
+created: 2026-10-11
+orden: 3
+ola: 0
+depende_de: [estabilizar-base, sesion-y-cliente-http]
+
+phases:
+  explore:
+    status: done
+    artifact: SOLID_CLEAN_ARCH_ROADMAP.md#a2-seguridad-backend
+    engram_topic: architecture/clean-arch-audit
+  proposal:
+    status: done
+    artifact: openspec/changes/hardening-seguridad/proposal.md
+    note: >
+      Único change del roadmap que cambia comportamiento a propósito. Contrato de login
+      nuevo (challenge) → deploy coordinado back+front; tokens previos se invalidan.
+  spec:
+    status: done
+    artifacts:
+      - openspec/changes/hardening-seguridad/specs/autenticacion/spec.md
+      - openspec/changes/hardening-seguridad/specs/autorizacion/spec.md
+      - openspec/changes/hardening-seguridad/specs/cuentas-usuario/spec.md
+      - openspec/changes/hardening-seguridad/specs/pedidos/spec.md
+      - openspec/changes/hardening-seguridad/specs/pagos/spec.md
+      - openspec/changes/hardening-seguridad/specs/panel-admin/spec.md
+  design:
+    status: done
+    artifact: openspec/changes/hardening-seguridad/design.md
+    decisiones_reversibles:
+      - ADR-14 OTP también para admins
+    open_questions:
+      - Roles adicionales con "admin" en el nombre → ¿superadmin? (MANUAL, salida del --dry-run; no bloquea)
+      - ¿Existe MP_WEBHOOK_SECRET en la cuenta de MercadoPago? (no bloquea)
+  tasks:
+    status: done
+    artifact: openspec/changes/hardening-seguridad/tasks.md
+  apply:
+    status: pending
+    branch: change/hardening-seguridad
+  verify:
+    status: pending
+  archive:
+    status: pending

@@ -23,7 +23,7 @@ Frontend (`cd TiendasMassFront-main`):
 - `npm run dev` — Vite dev server on `http://localhost:5173`.
 - `npm run build` / `npm run preview`.
 - `npm run lint` — ESLint (flat config, `eslint.config.js`).
-- `npm test` — Vitest. `npm run test:ui`, `npm run test:coverage` also available. (Note: there are currently no test files; the toolchain is wired but unused.)
+- `npm test` — Vitest. `npm run test:ui`, `npm run test:coverage` also available. (Note: there is one test file, `tests/unit/checkout-validations.test.js`, but `vite.config.js` has no `test` block and jsdom/Testing Library aren't installed, so the setup file never loads. The `estabilizar-base` change fixes this.)
 
 Both apps require a `.env` (copy from `.env.example`). The backend reads it via `dotenv/config` imported first in `app.ts`.
 
@@ -43,7 +43,9 @@ routes/*.routes.ts → middlewares (auth/validate) → controllers/*.controller.
   - Permission model is `Rol` ←→ `RolPermiso` ←→ `Permiso`, with `Usuario.rolId`. Seed/bootstrap via `scripts/seed-permisos.js`, `create-roles.js`, `setup-almacenero.js`.
 - **Validation** uses Zod schemas in `src/validators/` applied through the `validate` middleware.
 - **Uploads** Multer (`middlewares/upload.ts`); product images served statically from `/uploads` (`src/public/uploads`).
-- **Deployment** `.github/workflows/main_tienditamassback.yml` builds and deploys the backend to Azure Web App on push to `main`.
+- **Deployment** `TiendasMassBack-main/.github/workflows/main_tienditamassback.yml` (Azure Web App) and `TiendasMassFront-main/.github/workflows/azure-static-web-apps-*.yml` (Azure Static Web Apps) live inside the app folders. GitHub Actions only reads `.github/` at the repo root, so **neither workflow runs in this monorepo**. The `estabilizar-base` change moves them to the root.
+- **Security status:** until the `hardening-seguridad` change lands, most routes have **no** auth (all catalog mutations, `/api/pedidos`, dashboard, kardex, master-table, estados…). There are two JWT payload shapes (`{userId}` from `/api/auth/*`, `{id}` from `/api/usuarios/login`), and the superadmin check is `rol.nombre.includes('admin')`. Don't assume a route is protected; check its router.
+- **Build gotcha:** `npm run dev` uses `--transpile-only`, so type errors don't show up there. Run `npx tsc --noEmit` to typecheck. It currently fails at `src/services/kardex.service.ts:98`.
 
 When adding a resource, the established pattern is: entity → service → controller → `*.routes.ts` → register in `app.ts`.
 
@@ -59,13 +61,18 @@ When adding a resource, the established pattern is: entity → service → contr
 
 UI follows **"Barrio Moderno"**: trust-blue `#0033A0` + mass-yellow `#FFD100`, Plus Jakarta Sans (headings) / Inter (body), large radii and soft shadows. Tokens live in `TiendasMassFront-main/tailwind.config.js` — use them rather than ad-hoc colors.
 
-## Ongoing migration
+## Ongoing migration (Spec-Driven Development)
 
-`SOLID_CLEAN_ARCH_ROADMAP.md` describes an **incremental, backward-compatible** refactor of the backend toward Clean Architecture (DI via tsyringe, repository interfaces, use-cases). It is a target/plan — most of the current code still follows the layered structure above. Check the roadmap's phase status before assuming a module has been migrated. A multi-agent skill team for this migration is configured under `.claude/` / `.agents/`.
+`SOLID_CLEAN_ARCH_ROADMAP.md` (**v2, 2026-10-11**) is the master plan. It contains the diagnosis, the target architecture (a modular monolith by bounded context, with DDD only in `ventas`, `inventario` and `pagos`), the ADRs, and the ordered list of changes. Each step is an OpenSpec-style change under `openspec/changes/<name>/` (`proposal.md`, `specs/`, `design.md`, `tasks.md`, `state.yaml`). Conventions and per-phase rules are in `openspec/config.yaml`.
+
+- Work one change at a time, in roadmap order. Changes 1–3 (`estabilizar-base`, `sesion-y-cliente-http`, `hardening-seguridad`) are fully specified. The rest have only a proposal: write their spec, design and tasks right before applying, after a fresh exploration.
+- New backend code goes in `src/core/` or `src/modules/<contexto>/`, never in the legacy `controllers/`, `services/` or `routes/`. New frontend code goes in `src/shared/` or `src/features/` and never uses `fetch()`, raw `axios` or hardcoded URLs.
+- No repository interface+implementation for CRUD modules, and no DI container: modules are composed manually through `build<Ctx>(deps)` (ADR-03, ADR-04). `tsyringe` and `src/core/container.ts` from v1 Phase 0 are slated for removal.
+- **Obsolete:** the subagents in `.claude/agents/` (`repository-architect`, `service-migrator`, `di-wiring`, `api-unifier`, `component-splitter`, `cleanup-engineer`) and the skills in `.agents/skills/` implement the v1 horizontal phases and contradict the v2 plan. Don't use them.
 
 ## Conventions
 
 - Spanish is the working language for code identifiers, comments, commit messages, and docs.
-- No automated test suite exists on either side; validate backend changes with the Postman collections and manual runs.
+- No automated backend test suite exists yet (`estabilizar-base` adds vitest + supertest against a `tiendasmass_test` DB). Until then, validate backend changes with the Postman collections and manual runs.
 </content>
 </invoke>

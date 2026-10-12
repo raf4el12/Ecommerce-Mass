@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "dist/app.js",
   "scripts": {
-    "build": "tsc && tsc-alias && (cp -r src/keys dist/keys || true) && (cp -r src/public dist/public || true)",
+    "build": "tsc && tsc-alias && mkdir -p dist/keys dist/public && (cp -r src/keys/* dist/keys/ || true) && (cp -r src/public/* dist/public/ || true)",
     "start": "node dist/app.js",
     "dev": "ts-node-dev --respawn --transpile-only -r tsconfig-paths/register src/app.ts",
     "seed": "ts-node --transpile-only -r tsconfig-paths/register src/scripts/seed.ts",
