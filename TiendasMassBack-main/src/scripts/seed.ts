@@ -196,19 +196,25 @@ async function seedCatalogo() {
   if (!activo) throw new Error('Estado Activo no existe');
 
   const categoriasData = [
-    { nombre: 'Lácteos',     descripcion: 'Leche, yogurt, quesos y derivados' },
-    { nombre: 'Embutidos',   descripcion: 'Jamón, salchichas, chorizo' },
-    { nombre: 'Abarrotes',   descripcion: 'Arroz, fideos, aceite, conservas' },
-    { nombre: 'Bebidas',     descripcion: 'Gaseosas, jugos, agua, refrescos' },
-    { nombre: 'Limpieza',    descripcion: 'Detergentes, jabones, lavavajilla' },
+    { nombre: 'Lácteos',          descripcion: 'Leche, yogurt, quesos y derivados' },
+    { nombre: 'Embutidos',        descripcion: 'Jamón, salchichas, chorizo' },
+    { nombre: 'Abarrotes',        descripcion: 'Arroz, fideos, aceite, conservas, harinas' },
+    { nombre: 'Bebidas',          descripcion: 'Gaseosas, jugos, agua, cervezas' },
+    { nombre: 'Limpieza',         descripcion: 'Detergentes, jabones, lavavajilla' },
+    { nombre: 'Panadería',        descripcion: 'Panes, tostadas, bizcochos y pastelería' },
+    { nombre: 'Cuidado Personal', descripcion: 'Shampoo, jabón, cremas, higiene' },
+    { nombre: 'Snacks y Dulces',  descripcion: 'Papas, chocolates, galletas, gomitas' },
   ];
 
   const subcategoriasData: Record<string, string[]> = {
     Lácteos: ['Leche', 'Yogurt', 'Queso', 'Mantequilla'],
     Embutidos: ['Jamón', 'Salchicha', 'Chorizo'],
-    Abarrotes: ['Arroz', 'Fideos', 'Aceite', 'Conservas', 'Azúcar'],
+    Abarrotes: ['Arroz', 'Fideos', 'Aceite', 'Conservas', 'Azúcar', 'Harina'],
     Bebidas: ['Gaseosas', 'Jugos', 'Agua', 'Cervezas'],
-    Limpieza: ['Detergente', 'Jabón', 'Lavavajilla'],
+    Limpieza: ['Detergente', 'Limpiador', 'Lavavajilla'],
+    Panadería: ['Panes', 'Bizcochos'],
+    'Cuidado Personal': ['Shampoo', 'Higiene'],
+    'Snacks y Dulces': ['Papas Fritas', 'Chocolates', 'Gomitas', 'Snacks Salados'],
   };
 
   let catCreadas = 0;
@@ -243,17 +249,38 @@ async function seedCatalogo() {
   // Productos demo
   const productosData = [
     { nombre: 'Leche Gloria Entera 1L',   precio: 4.50,  stock: 124, marca: 'Gloria',       categoria: 'Lácteos',   imagen: 'uploads/productos/leche_entera.jpg' },
-    { nombre: 'Yogurt Laive Fresa 1L',   precio: 6.90,  stock: 80,  marca: 'Laive',        categoria: 'Lácteos' },
-    { nombre: 'Queso Fresco Bonle 500g', precio: 12.50, stock: 45,  marca: 'Bonle',        categoria: 'Lácteos',   imagen: 'uploads/productos/queso_fresco.jpg' },
-    { nombre: 'Jamón San Fernando 200g', precio: 8.90,  stock: 12,  marca: 'San Fernando', categoria: 'Embutidos' },
-    { nombre: 'Salchicha Otto Kunz 8u',  precio: 7.50,  stock: 60,  marca: 'Otto Kunz',    categoria: 'Embutidos' },
-    { nombre: 'Arroz Costeño 5kg',       precio: 18.90, stock: 200, marca: 'Costeño',      categoria: 'Abarrotes' },
-    { nombre: 'Fideo Don Vittorio 500g', precio: 3.20,  stock: 150, marca: 'Don Vittorio', categoria: 'Abarrotes' },
-    { nombre: 'Aceite Primor 1L',        precio: 9.50,  stock: 34,  marca: 'Primor',       categoria: 'Abarrotes',   imagen: 'uploads/productos/aceite_girasol.jpg' },
-    { nombre: 'Inca Kola 1.5L',          precio: 6.00,  stock: 95,  marca: 'Inca Kola',    categoria: 'Bebidas' },
-    { nombre: 'Agua San Mateo 2.5L',     precio: 4.20,  stock: 110, marca: 'San Mateo',    categoria: 'Bebidas' },
-    { nombre: 'Detergente Bolívar 4.5kg', precio: 29.90, stock: 18,  marca: 'Bolívar',     categoria: 'Limpieza', imagen: 'uploads/productos/detergente_ariel.jpg' },
-    { nombre: 'Jabón Bolívar Pack 5',     precio: 12.90, stock: 70,  marca: 'Bolívar',     categoria: 'Limpieza', imagen: 'uploads/productos/jabon_dove.jpg' },
+    { nombre: 'Yogurt Laive Fresa 1L',    precio: 6.90,  stock: 80,  marca: 'Laive',        categoria: 'Lácteos',   imagen: 'uploads/productos/yogurt_laive_fresa.jpg' },
+    { nombre: 'Queso Fresco Bonle 500g',  precio: 12.50, stock: 45,  marca: 'Bonle',        categoria: 'Lácteos',   imagen: 'uploads/productos/queso_fresco.jpg' },
+    { nombre: 'Jamón San Fernando 200g',  precio: 8.90,  stock: 12,  marca: 'San Fernando', categoria: 'Embutidos', imagen: 'uploads/productos/jamon_san_fernando.jpg' },
+    { nombre: 'Salchicha Otto Kunz 8u',   precio: 7.50,  stock: 60,  marca: 'Otto Kunz',    categoria: 'Embutidos', imagen: 'uploads/productos/salchicha_otto_kunz.jpg' },
+    { nombre: 'Arroz Costeño 5kg',        precio: 18.90, stock: 200, marca: 'Costeño',      categoria: 'Abarrotes', imagen: 'uploads/productos/arroz_costeno.jpg' },
+    { nombre: 'Fideo Don Vittorio 500g',  precio: 3.20,  stock: 150, marca: 'Don Vittorio', categoria: 'Abarrotes', imagen: 'uploads/productos/fideo_don_vittorio.jpg' },
+    { nombre: 'Aceite Primor 1L',         precio: 9.50,  stock: 34,  marca: 'Primor',       categoria: 'Abarrotes', imagen: 'uploads/productos/aceite_girasol.jpg' },
+    { nombre: 'Harina Blanca Flor 1kg',   precio: 6.50,  stock: 80,  marca: 'Blanca Flor',  categoria: 'Abarrotes', imagen: 'uploads/productos/harina_trigo.jpg' },
+    { nombre: 'Inca Kola 1.5L',           precio: 6.00,  stock: 95,  marca: 'Inca Kola',    categoria: 'Bebidas',   imagen: 'uploads/productos/inca_kola.jpg' },
+    { nombre: 'Agua San Mateo 2.5L',      precio: 4.20,  stock: 110, marca: 'San Mateo',    categoria: 'Bebidas',   imagen: 'uploads/productos/agua_san_mateo.jpg' },
+    { nombre: 'Jugo de Mango Watts 1L',   precio: 4.50,  stock: 45,  marca: 'Watts',        categoria: 'Bebidas',   imagen: 'uploads/productos/jugo_mango.jpg' },
+    { nombre: 'Cerveza Pilsen Callao 630ml', precio: 5.50, stock: 120, marca: 'Pilsen',     categoria: 'Bebidas',   imagen: 'uploads/productos/cerveza_pilsen.jpg' },
+    { nombre: 'Detergente Ariel 4.5kg',   precio: 29.90, stock: 18,  marca: 'Ariel',        categoria: 'Limpieza',  imagen: 'uploads/productos/detergente_ariel.jpg' },
+    { nombre: 'Jabón Dove Original Pack 5', precio: 12.90, stock: 70,  marca: 'Dove',       categoria: 'Limpieza',  imagen: 'uploads/productos/jabon_dove.jpg' },
+    { nombre: 'Limpiador Poett 1.5L',     precio: 7.20,  stock: 50,  marca: 'Poett',        categoria: 'Limpieza',  imagen: 'uploads/productos/limpiador_mult.jpg' },
+    { nombre: 'Pan Integral Bimbo 500g',  precio: 8.50,  stock: 30,  marca: 'Bimbo',        categoria: 'Panadería', imagen: 'uploads/productos/pan_integral.jpg' },
+    { nombre: 'Bizcocho Unión Chocolate', precio: 2.50,  stock: 60,  marca: 'Unión',        categoria: 'Panadería', imagen: 'uploads/productos/bizcocho.jpg' },
+    { nombre: 'Shampoo H&S 400ml',        precio: 18.50, stock: 40,  marca: 'H&S',          categoria: 'Cuidado Personal', imagen: 'uploads/productos/champu_hs.jpg' },
+    { nombre: 'Papas Fritas Lays 150g',   precio: 5.50,  stock: 85,  marca: 'Lays',         categoria: 'Snacks y Dulces', imagen: 'uploads/productos/papas_fritas.jpg' },
+    { nombre: 'Maní Salado Karinto 100g', precio: 3.20,  stock: 50,  marca: 'Karinto',      categoria: 'Snacks y Dulces', imagen: 'uploads/productos/mani_salado.jpg' },
+    { nombre: 'Chocolate Sublime 50g',    precio: 2.00,  stock: 120, marca: 'Sublime',      categoria: 'Snacks y Dulces', imagen: 'uploads/productos/chocolate_negro.jpg' },
+    { nombre: 'Gomitas Ambrosoli 100g',   precio: 1.50,  stock: 90,  marca: 'Ambrosoli',    categoria: 'Snacks y Dulces', imagen: 'uploads/productos/gomitas_frutales.jpg' },
+    { nombre: 'Atún Florida 170g',        precio: 4.80,  stock: 200, marca: 'Florida',      categoria: 'Abarrotes',       imagen: 'uploads/productos/atun_florida.jpg' },
+    { nombre: 'Azúcar Rubia Cartavio 1kg', precio: 3.50, stock: 150, marca: 'Cartavio',     categoria: 'Abarrotes',       imagen: 'uploads/productos/azucar_rubia.jpg' },
+    { nombre: 'Mantequilla Laive 200g',   precio: 7.20,  stock: 60,  marca: 'Laive',        categoria: 'Lácteos',         imagen: 'uploads/productos/mantequilla_laive.jpg' },
+    { nombre: 'Leche Evaporada Ideal 400g', precio: 3.80, stock: 180, marca: 'Ideal',       categoria: 'Lácteos',         imagen: 'uploads/productos/leche_ideal.jpg' },
+    { nombre: 'Chorizo San Fernando 250g', precio: 10.50, stock: 45,  marca: 'San Fernando', categoria: 'Embutidos',       imagen: 'uploads/productos/chorizo_san_fernando.jpg' },
+    { nombre: 'Pasta Dental Colgate 90g', precio: 4.50,  stock: 100, marca: 'Colgate',      categoria: 'Cuidado Personal', imagen: 'uploads/productos/pasta_dental.jpg' },
+    { nombre: 'Desodorante Rexona 50ml',  precio: 12.00, stock: 50,  marca: 'Rexona',       categoria: 'Cuidado Personal', imagen: 'uploads/productos/desodorante_rexona.jpg' },
+    { nombre: 'Galletas Soda Field 6x34g', precio: 2.80,  stock: 120, marca: 'Field',        categoria: 'Snacks y Dulces', imagen: 'uploads/productos/galletas_soda.jpg' },
+    { nombre: 'Gaseosa Coca Cola 3L',     precio: 11.50, stock: 80,  marca: 'Coca Cola',    categoria: 'Bebidas',         imagen: 'uploads/productos/coca_cola.jpg' },
+    { nombre: 'Lavavajilla Ayudín 500g',  precio: 5.50,  stock: 90,  marca: 'Ayudín',       categoria: 'Limpieza',        imagen: 'uploads/productos/lavavajilla_ayudin.jpg' },
   ];
 
   let prodCreados = 0;
