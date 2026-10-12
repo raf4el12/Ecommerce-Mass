@@ -1,0 +1,35 @@
+change: sesion-y-cliente-http
+artifact_store: hybrid
+created: 2026-10-11
+orden: 2
+ola: 0
+depende_de: [estabilizar-base]
+
+phases:
+  explore:
+    status: done
+    artifact: SOLID_CLEAN_ARCH_ROADMAP.md#a4-frontend
+    engram_topic: architecture/clean-arch-audit
+  proposal:
+    status: done
+    artifact: openspec/changes/sesion-y-cliente-http/proposal.md
+  spec:
+    status: done
+    artifacts:
+      - openspec/changes/sesion-y-cliente-http/specs/cliente-http/spec.md
+      - openspec/changes/sesion-y-cliente-http/specs/sesion-frontend/spec.md
+      - openspec/changes/sesion-y-cliente-http/specs/acceso-panel-admin/spec.md
+  design:
+    status: done
+    artifact: openspec/changes/sesion-y-cliente-http/design.md
+    open_questions: []
+  tasks:
+    status: done
+    artifact: openspec/changes/sesion-y-cliente-http/tasks.md
+  apply:
+    status: pending
+    branch: change/sesion-y-cliente-http
+  verify:
+    status: pending
+  archive:
+    status: pending

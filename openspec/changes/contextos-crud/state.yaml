@@ -1,0 +1,26 @@
+change: contextos-crud
+artifact_store: hybrid
+created: 2026-10-11
+orden: 12
+ola: 3
+depende_de: [core-backend, frontend-base-features, contexto-inventario]
+
+phases:
+  explore:
+    status: pending
+    note: Hacer una exploración fresca del código al iniciar; el diagnóstico de 2026-10-11 es solo punto de partida.
+  proposal:
+    status: done
+    artifact: openspec/changes/contextos-crud/proposal.md
+  spec:
+    status: pending
+  design:
+    status: pending
+  tasks:
+    status: pending
+  apply:
+    status: pending
+  verify:
+    status: pending
+  archive:
+    status: pending

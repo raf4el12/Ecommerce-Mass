@@ -1,0 +1,73 @@
+schema: spec-driven
+
+context: |
+  Proyecto: TiendasMass — e-commerce (tienda pública + panel admin). Monorepo SIN package.json raíz:
+    - TiendasMassBack-main/  API REST: Node + Express 4 + TypeScript 5.8 + TypeORM 0.3 + MySQL 8 (docker compose)
+    - TiendasMassFront-main/ SPA: React 19 + Vite + Tailwind (JS hoy; TypeScript incremental con allowJs)
+  Idioma de trabajo: español (identificadores de dominio, comentarios, commits, docs).
+  Capas técnicas en inglés (domain/application/infrastructure/http), conceptos de negocio en español.
+
+  Plan maestro: SOLID_CLEAN_ARCH_ROADMAP.md (diagnóstico, arquitectura objetivo, ADRs y orden de los changes).
+
+  Arquitectura objetivo backend — monolito modular por bounded context (src/modules/<contexto>/):
+    - Contextos núcleo con dominio rico (ventas, inventario, pagos):
+        domain/          agregados, value objects, errores de dominio, puertos (interfaces de repositorio)
+        application/     casos de uso (orquestan transacción + puertos), DTOs
+        infrastructure/  entidades TypeORM, repositorios TypeORM, mappers, adaptadores externos (MercadoPago, email)
+        http/            routes, controller (delgado), schemas Zod
+        index.ts         composition root del módulo: construye dependencias y exporta el router
+    - Contextos de soporte / CRUD (catalogo, tiendas, configuracion, reportes, clientes, identidad):
+        <recurso>.routes.ts · <recurso>.controller.ts · <recurso>.service.ts · <recurso>.schemas.ts · <recurso>.entity.ts
+        Usan Repository<T> de TypeORM directo; SIN interfaz+implementación por entidad.
+    - src/core/  kernel transversal sin negocio: config/env.ts (env validado con Zod), auth/ (authenticate, authorize),
+                 http/ (errorHandler, validate, asyncHandler), errors/ (AppError, DomainError), database/ (DataSource, migrations)
+    - Composición manual (sin contenedor DI): cada módulo expone build<Modulo>(deps) en su index.ts; src/server.ts monta todo.
+    - Regla de dependencias: domain no importa nada de infraestructura ni de Express/TypeORM; un módulo solo consume
+      otro a través de lo que exporta su index.ts (nunca sus archivos internos).
+
+  Arquitectura objetivo frontend — organizada por features:
+    src/app/ (router con lazy loading, providers, layouts) · src/shared/ (api/client, auth/session, ui/, lib/)
+    src/features/<feature>/ (api.ts, hooks, componentes, páginas) · src/features/admin/<recurso>/
+    Un único cliente HTTP (src/shared/api/client) con VITE_API_URL e interceptores; prohibido fetch() o axios directo.
+
+  Testing:
+    - Backend: vitest + supertest. Integración contra MySQL real (DB tiendasmass_test). Dominio con tests unitarios puros.
+      La app se construye con createApp() (src/app.ts) sin escuchar puerto; src/server.ts inicializa DB y hace listen.
+    - Frontend: vitest + jsdom + @testing-library/react. Tests de hooks y de componentes de presentación.
+  Verificación: backend `npx tsc --noEmit` + `npm test`; frontend `npm test` + `npm run build` (+ `npm run lint` bloqueante desde limpieza-final).
+
+rules:
+  proposal:
+    - Incluir plan de rollback en cada change
+    - Declarar explícitamente si el change CAMBIA comportamiento observable (endpoints, payloads, UI) y por qué
+    - Listar dependencias con otros changes del roadmap por nombre
+  specs:
+    - Usar GIVEN/WHEN/THEN en todos los escenarios
+    - Usar palabras clave RFC 2119 en mayúsculas (MUST, MUST NOT, SHOULD, MAY)
+    - Dar a cada escenario un ID estable (p. ej. AUTH.3) para trazarlo desde tasks y tests
+  design:
+    - Documentar decisiones con alternativas y rationale (tabla)
+    - Declarar qué lecturas y validaciones ocurren antes de abrir una transacción y qué ocurre dentro
+    - Incluir la tabla de archivos (crear/modificar/borrar) y los tests que acompañan al change
+    - No introducir abstracciones sin un segundo consumidor real (sin repositorios interfaz+impl para CRUD)
+  tasks:
+    - Agrupar por fase con numeración jerárquica (1.1, 1.2…)
+    - Cada tarea completable en una sesión; PRs de ≤ 400 líneas cambiadas salvo borrados mecánicos
+    - Tests de lógica nueva o cambiada en la MISMA tarea que la implementación (TEST antes de IMPL)
+    - Referenciar IDs de escenario del spec en las tareas TEST
+    - Marcar como MANUAL las tareas que solo puede hacer una persona (secrets, consola Azure)
+  apply:
+    tdd: true
+    test_command: "npm test"
+    rules:
+      - Un change a la vez; no mezclar refactor estructural con cambios de comportamiento no declarados en el spec
+      - Código nuevo del backend va en src/modules/ o src/core/, nunca en controllers/ services/ routes/ legacy
+      - Código nuevo del frontend va en src/shared/ o src/features/, nunca usa fetch() ni URLs hardcodeadas
+  verify:
+    test_command: "npm test"
+    build_command: "npx tsc --noEmit (backend) && npm run build (frontend)"
+    coverage_threshold: 0
+  archive:
+    - Fusionar los delta specs en openspec/specs/<capacidad>/spec.md
+    - Actualizar la tabla de progreso de SOLID_CLEAN_ARCH_ROADMAP.md
+    - Advertir antes de fusionar deltas destructivos (REMOVED) en los specs principales

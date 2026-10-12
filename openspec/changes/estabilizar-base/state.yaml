@@ -1,0 +1,36 @@
+change: estabilizar-base
+artifact_store: hybrid
+created: 2026-10-11
+orden: 1
+ola: 0
+depende_de: []
+
+phases:
+  explore:
+    status: done
+    artifact: SOLID_CLEAN_ARCH_ROADMAP.md#apéndice-a--diagnóstico-2026-10-11
+    engram_topic: architecture/clean-arch-audit
+  proposal:
+    status: done
+    artifact: openspec/changes/estabilizar-base/proposal.md
+  spec:
+    status: done
+    artifacts:
+      - openspec/changes/estabilizar-base/specs/build-y-despliegue/spec.md
+      - openspec/changes/estabilizar-base/specs/validacion-entrada/spec.md
+      - openspec/changes/estabilizar-base/specs/pruebas-automatizadas/spec.md
+  design:
+    status: done
+    artifact: openspec/changes/estabilizar-base/design.md
+    open_questions:
+      - URL pública del backend para VITE_API_URL (MANUAL, no bloquea)
+  tasks:
+    status: done
+    artifact: openspec/changes/estabilizar-base/tasks.md
+  apply:
+    status: pending
+    branch: refactor/clean-arch
+  verify:
+    status: pending
+  archive:
+    status: pending
