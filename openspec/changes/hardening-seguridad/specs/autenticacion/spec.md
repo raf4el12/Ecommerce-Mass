@@ -53,6 +53,7 @@ Un único flujo de inicio de sesión (password + OTP por email) para clientes y 
 - GIVEN un `challenge` válido
 - WHEN se envían 5 códigos incorrectos y después el correcto
 - THEN la sexta respuesta es `401`
+- AND `POST /api/auth/otp/reenviar` con ese `challenge` responde `401`
 - AND hace falta un nuevo login para obtener otro OTP
 
 #### Scenario: AUTH.7 — Challenge vencido o adulterado
@@ -68,7 +69,7 @@ Un único flujo de inicio de sesión (password + OTP por email) para clientes y 
 #### Scenario: AUTH.8 — Login sin OTP
 
 - GIVEN credenciales válidas
-- WHEN se llama a `POST /api/usuarios/login`
+- WHEN se llama a `POST /api/usuarios/login` (con o sin un token válido en el header)
 - THEN la respuesta es `404`
 
 #### Scenario: AUTH.9 — Admin con OTP
@@ -79,13 +80,20 @@ Un único flujo de inicio de sesión (password + OTP por email) para clientes y 
 
 ### Requirement: Reenvío de OTP
 
-`POST /api/auth/otp/reenviar { challenge }` MUST generar un OTP nuevo, invalidar el anterior y enviarlo al usuario del challenge.
+`POST /api/auth/otp/reenviar { challenge }` MUST generar un OTP nuevo, invalidar el anterior y enviarlo al usuario del challenge. Cada challenge lleva un `jti` y los OTP guardan ese `jti`: un challenge MUST permitir como máximo 3 reenvíos, y si alguno de sus OTP se bloqueó por intentos, `reenviar` MUST responder `401`. Así los reenvíos no reinician el tope de AUTH.6.
 
 #### Scenario: AUTH.10 — Reenvío
 
 - GIVEN un `challenge` válido y un OTP vigente
 - WHEN se llama a `reenviar`
 - THEN el OTP anterior deja de ser válido y el nuevo funciona en `verificar`
+
+#### Scenario: AUTH.16 — Tope de reenvíos
+
+- GIVEN un `challenge` válido que ya se reenvió 3 veces
+- WHEN se pide un cuarto reenvío
+- THEN la respuesta es `429`
+- AND no se envía ningún email
 
 ### Requirement: Generación y exposición del OTP
 
@@ -99,13 +107,19 @@ El OTP MUST generarse con `crypto.randomInt(100000, 1000000)`. El campo `codigoD
 
 ### Requirement: Límite de intentos
 
-`/api/auth/login`, `/api/auth/admin/login` y `/api/auth/otp/*` MUST limitarse a 10 requests por IP cada 15 minutos. Al superarlo, MUST responder `429`.
+`/api/auth/login`, `/api/auth/admin/login` y `/api/auth/otp/*` MUST limitarse a `AUTH_RATE_LIMIT` requests (por defecto 10) por IP de cliente cada 15 minutos. Al superarlo, MUST responder `429`. Detrás del proxy de Azure, la IP de cliente MUST salir de `X-Forwarded-For` (`app.set('trust proxy', env.TRUST_PROXY)`); si no, todos los usuarios compartirían el límite de la IP del proxy.
 
 #### Scenario: AUTH.12 — Rate limit
 
-- GIVEN 10 requests a `/api/auth/login` desde la misma IP en 15 minutos
-- WHEN llega la undécima
+- GIVEN `AUTH_RATE_LIMIT = N` y N requests a `/api/auth/login` desde la misma IP de cliente en 15 minutos
+- WHEN llega la request N + 1
 - THEN la respuesta es `429`
+
+#### Scenario: AUTH.17 — Clientes distintos detrás del proxy
+
+- GIVEN `TRUST_PROXY = 1` y N requests con `X-Forwarded-For: 203.0.113.1` que agotaron el límite
+- WHEN llega una request con `X-Forwarded-For: 203.0.113.2`
+- THEN no responde `429`
 
 ### Requirement: Token de acceso único
 

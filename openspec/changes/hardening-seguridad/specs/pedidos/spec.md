@@ -47,6 +47,6 @@ Un pedido siempre pertenece al usuario autenticado que lo crea, y solo su dueño
 #### Scenario: PED.5 — Intento de marcar como pagado
 
 - GIVEN un pedido `PENDIENTE`
-- WHEN se llama a `PATCH /api/pedidos/<id>/estado-pago` con `{ estadoPago: "COMPLETADO" }` o a `POST /api/pedidos/pagar`
+- WHEN un superadmin autenticado llama a `PATCH /api/pedidos/<id>/estado-pago` con `{ estadoPago: "COMPLETADO" }` o a `POST /api/pedidos/pagar`
 - THEN la respuesta es `404`
 - AND el pedido sigue `PENDIENTE`

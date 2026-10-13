@@ -20,16 +20,16 @@
 
 ## Fase 0: Preparación
 
-- [ ] 0.1 Commitear por separado los cambios locales pendientes (`docker-compose.yml`, `package.json`, `src/scripts/seed.ts`, `seed_80.ts`, `update_images.ts` y las imágenes nuevas) para no mezclarlos con este change.
+- [x] 0.1 Commitear por separado los cambios locales pendientes (hecho en `660ed4b` y `3d25d36`).
 - [ ] 0.2 Verificar que `docker compose up -d` levanta MySQL y que `npm run dev` arranca. Anotar el estado inicial en `state.yaml`.
 
 ## Fase 1 (WU1): Build verde y tests del backend
 
 - [ ] 1.1 **IMPL**: `src/services/kardex.service.ts:98`: `usuario: usuario ?? undefined`.
 - [ ] 1.2 **VERIFY**: `npx tsc --noEmit` → 0 (BUILD.1).
-- [ ] 1.3 **IMPL**: Separar `src/app.ts` en `createApp()` y crear `src/server.ts` (inicialización de DB, `seedTipoCliente` y `listen`). Actualizar `main`, `start` y `dev` en `package.json`.
+- [ ] 1.3 **IMPL**: Separar `src/app.ts` en `createApp()` y crear `src/server.ts` con imports estáticos y `async function main()` (sin `await` de nivel superior; `design.md` §3). Actualizar `main`, `start` y `dev` en `package.json`.
 - [ ] 1.4 **VERIFY**: `npm run dev`; `curl localhost:5001/health` → 200; `curl localhost:5001/api/products` → 200.
-- [ ] 1.5 **IMPL**: Instalar `vitest`, `supertest`, `@types/supertest` y `vite-tsconfig-paths`. Crear `vitest.config.ts`, `.env.test` y `test/setup/{env,db}.ts` con el guard `_test` y llaves RSA efímeras, y `test/helpers/{resetDb,http}.ts`. Script `test` = `vitest run`.
+- [ ] 1.5 **IMPL**: Instalar `vitest`, `supertest`, `@types/supertest`, `vite-tsconfig-paths`, `unplugin-swc` y `@swc/core`. Crear `vitest.config.ts` (SWC con `decoratorMetadata: true`), `.env.test` y `test/setup/{env,db}.ts` con el guard `_test` y llaves RSA efímeras, y `test/helpers/{resetDb,http}.ts`. Script `test` = `vitest run`. Comprobar que `AppDataSource.initialize()` no lanza `ColumnTypeUndefinedError`.
 - [ ] 1.6 **TEST**: `test/smoke/health.test.ts`: `GET /health` → 200 sin `listen` (TEST.3).
 - [ ] 1.7 **TEST**: `test/smoke/productos.test.ts`: `GET /api/products` → 200 (contrato actual); `POST /api/products` con `precio: "abc"` → 400 con `details` (VAL.1); después, `GET /health` → 200 (VAL.2). Debe fallar antes de 1.8.
 - [ ] 1.8 **IMPL**: Reescribir `src/middlewares/validate.ts` según `design.md` §2.
@@ -38,8 +38,8 @@
 
 ## Fase 2 (WU2): Configuración y CI/CD
 
-- [ ] 2.1 **TEST**: `test/unit/env.test.ts`: parseo con variables faltantes → error que nombra `DB_HOST` (CONF.1); llaves `*_B64` → PEM decodificado (CONF.2); development sin `*_B64` → lectura de archivos (CONF.3); production sin `*_B64` → error (CONF.4).
-- [ ] 2.2 **IMPL**: `src/core/config/env.ts` según `design.md` §4 (separar `parseEnv(raw)`, que es puro, de `env`, que hace `exit`).
+- [ ] 2.1 **TEST**: `test/unit/env.test.ts`: `parseEnv` con variables faltantes → error que nombra `DB_HOST` (CONF.1); llaves `*_B64` → PEM decodificado (CONF.2); development sin `*_B64` → lectura de PEM temporales desde `keysDir` (CONF.3; no depende de `src/keys`, que no está en git); production sin `*_B64` → error (CONF.4).
+- [ ] 2.2 **IMPL**: `src/core/config/env.ts` según `design.md` §4 (separar `parseEnv(raw, { keysDir })`, que es pura, de `env`, que hace `exit`).
 - [ ] 2.3 **IMPL**: Migrar a `env` los consumidores: `config/data-source.ts`, `middlewares/verificarToken.ts`, `controllers/auth.controller.ts` y `controllers/usuarios.controller.ts`.
 - [ ] 2.4 **TEST**: `test/smoke/cors.test.ts` (CONF.5).
 - [ ] 2.5 **IMPL**: CORS en `createApp()` desde `env.corsOrigins`.
@@ -47,7 +47,7 @@
 - [ ] 2.7 **IMPL**: Crear `.github/workflows/backend.yml` y `frontend.yml` según `design.md` §7, y `TiendasMassFront-main/public/staticwebapp.config.json`.
 - [ ] 2.8 **IMPL**: Borrar `TiendasMassBack-main/.github/` y `TiendasMassFront-main/.github/`.
 - [ ] 2.9 **MANUAL**: Configurar los secrets y variables en GitHub y las app settings en Azure (`design.md` §7). Definir la URL pública del backend para `VITE_API_URL`.
-- [ ] 2.10 **VERIFY**: Abrir el PR y confirmar que solo corre `backend.yml` (CI.1 y CI.2). Tras el merge, primer deploy con `workflow_dispatch` (CI.4). Probar `/health` en Azure.
+- [ ] 2.10 **VERIFY**: En el PR de WU2 corren ambos workflows (toca las dos apps): confirmar los pasos de CI.2 y CI.3. Agregar un commit temporal con un error de tipos y comprobar que `verify` falla (BUILD.2); luego revertirlo. Tras el merge, primer deploy con `workflow_dispatch` (CI.4) y probar `/health` en Azure.
 
 ## Fase 3 (WU3): Tooling del frontend
 
@@ -55,7 +55,7 @@
 - [ ] 3.2 **TEST**: `tests/unit/Button.test.jsx`: renderiza `components/ui/Button.jsx` y usa `toBeInTheDocument` (TEST.5).
 - [ ] 3.3 **IMPL**: `tsconfig.json` con `allowJs` y script `typecheck`. Pasar `typescript` a devDependencies y quitar `mercadopago` de las dependencias.
 - [ ] 3.4 **IMPL**: `git rm -r --cached test-results` y agregar `test-results/`, `coverage/` y `.env` al `.gitignore` del front (GIT.1).
-- [ ] 3.5 **VERIFY**: `npm test` (47 tests + 1 nuevo; TEST.4) y `npm run build`.
+- [ ] 3.5 **VERIFY**: `npm test` (47 tests + 1 nuevo; TEST.4) y `npm run build`. El PR de WU3 solo toca el front: confirmar que corre `frontend.yml` y no `backend.yml` (CI.1).
 
 ## Fase 4 (WU4): Código muerto
 

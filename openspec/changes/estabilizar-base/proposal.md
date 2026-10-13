@@ -23,10 +23,10 @@ Solo corrige defectos. No cambia ningún endpoint, payload ni pantalla.
 - Corregir `src/middlewares/validate.ts` (Zod 4 expone `issues`, no `errors`) y evitar que sus errores escapen.
 - Separar `src/app.ts` (`createApp()`, sin `listen`) de `src/server.ts` (env → DB → seed `TipoCliente` → `listen`).
 - Crear `src/core/config/env.ts` (Zod). Llaves JWT por entorno (`JWT_PRIVATE_KEY_B64`, `JWT_PUBLIC_KEY_B64`), `CORS_ORIGINS` y `NODE_ENV` obligatorio.
-- Backend: vitest + supertest + base de datos de test `tiendasmass_test` + smoke tests.
+- Backend: vitest (transformando con SWC para que TypeORM reciba la metadata de decoradores) + supertest + base de datos de test `tiendasmass_test` + smoke tests.
 - Frontend: bloque `test` en `vite.config.js`, jsdom + Testing Library, `tsconfig.json` con `allowJs` (ADR-11). `typescript` pasa a devDependencies y se quita `mercadopago` (SDK de Node) de las dependencias del front.
 - Workflows en `.github/workflows/` de la raíz, con filtros por ruta: verificación en cada PR y deploy en push a `main`.
-- Borrar el código muerto verificado (23 archivos del front, 5 del backend, el montaje duplicado de `tarjetas-usuario` y las dependencias sin uso) y sacar `test-results/` de git.
+- Borrar el código muerto verificado (23 archivos del front, 6 del backend, el montaje duplicado de `tarjetas-usuario` y las dependencias sin uso) y sacar `test-results/` de git.
 
 ### Excluido
 
@@ -67,14 +67,14 @@ Solo corrige defectos. No cambia ningún endpoint, payload ni pantalla.
 | `TiendasMassFront-main/vite.config.js` · `tsconfig.json` · `package.json` | Modificado / Nuevo | Tooling de tests y TypeScript incremental |
 | `.github/workflows/backend.yml` · `frontend.yml` | Nuevo | CI/CD desde la raíz |
 | `TiendasMass*-main/.github/` | Borrado | Workflows que nunca se ejecutaban |
-| 28 archivos muertos + `test-results/` | Borrado | Ver `design.md` §6 |
+| 29 archivos muertos + `test-results/` | Borrado | Ver `design.md` §6 |
 
 ## Riesgos
 
 | Riesgo | Probabilidad | Mitigación |
 |---|---|---|
 | El deploy falla porque faltan secrets en `raf4el12/Ecommerce-Mass` (los workflows venían de otros repos) | Alta | Tarea MANUAL de configurar secrets y app settings antes del primer deploy. El deploy se dispara a mano (`workflow_dispatch`) la primera vez |
-| `npm start` deja de funcionar al pasar el entrypoint a `dist/server.js` | Media | Actualizar `main`/`start`/`dev` en el mismo commit. Hay cambios locales sin commitear en `package.json` (script `build`): se commitean primero, por separado |
+| `npm start` deja de funcionar al pasar el entrypoint a `dist/server.js` | Media | Actualizar `main`/`start`/`dev` en el mismo commit |
 | Se borra un archivo que se carga de forma dinámica | Baja | grep de imports, `url()` en CSS y `index.html`, `npm run build` y navegación manual por las rutas principales |
 | La base de test pisa la de desarrollo | Baja | `test/setup` aborta si `DB_NAME` no termina en `_test` |
 
@@ -89,7 +89,7 @@ Solo corrige defectos. No cambia ningún endpoint, payload ni pantalla.
 
 - Ninguna con otros changes.
 - Acceso de administrador al repositorio de GitHub y al portal de Azure (tareas MANUAL).
-- Commitear antes los cambios locales pendientes (`docker-compose.yml`, `package.json`, `src/scripts/seed.ts`, `seed_80.ts`, `update_images.ts` y las imágenes nuevas) para no mezclarlos con este change.
+- ~~Commitear antes los cambios locales pendientes~~: hecho en `660ed4b` y `3d25d36`.
 
 ## Criterios de éxito
 

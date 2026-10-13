@@ -83,7 +83,7 @@ Un rol MUST ser superadmin solo si `Rol.esSuperAdmin = true`. El superadmin MUST
 
 ### Requirement: Módulos KARDEX y ROLES
 
-`AdminModulo` MUST incluir `KARDEX` y `ROLES`. Las rutas de kardex MUST usar `KARDEX`; las de roles y permisos MUST usar `ROLES`. `GET /api/roles` MUST aceptar `USUARIOS:READ` o `ROLES:READ`. El script de migración MUST otorgar `KARDEX:<acción>` a cada rol que tenga `PRODUCTOS:<acción>`, y `ROLES:<acción>` a cada rol que tenga `MASTER_TABLE:<acción>`.
+`AdminModulo` MUST incluir `KARDEX` y `ROLES`. Las rutas de kardex MUST usar `KARDEX`; las de roles y permisos MUST usar `ROLES`. `GET /api/roles` MUST aceptar `USUARIOS:READ` o `ROLES:READ`. El script de migración MUST otorgar `KARDEX:<acción>` a cada rol que tenga `PRODUCTOS:<acción>` y MUST NOT otorgar `ROLES` a ningún rol. Hoy gestionar roles y permisos exige `requireAdmin` (rol "admin*"), y tras el script esos roles son superadmin; solo un superadmin puede delegar `ROLES` después.
 
 #### Scenario: AUTHZ.11 — Sin pérdida de acceso al migrar
 
@@ -91,6 +91,25 @@ Un rol MUST ser superadmin solo si `Rol.esSuperAdmin = true`. El superadmin MUST
 - WHEN se ejecuta el script de migración de permisos
 - THEN el rol también tiene `KARDEX:READ` y `KARDEX:CREATE`
 - AND su usuario puede hacer `GET /api/kardex` y `POST /api/kardex`
+- AND ningún rol recibe permisos `ROLES`
+
+### Requirement: Sin escalada de privilegios por roles
+
+Solo un superadmin MAY:
+
+- asignar un rol con `esSuperAdmin = true` (`PATCH /api/permisos/usuarios/:id/rol`, `PUT /api/usuarios/update/:id` con `rolId`, `POST /api/usuarios` con `rolId`);
+- modificar los permisos de un rol superadmin (`PUT /api/permisos/roles/:roleId`);
+- cambiar `esSuperAdmin` en un rol.
+
+Además, un usuario que no es superadmin MUST NOT modificar los permisos de su propio rol, ni cambiarse su propio rol. En todos estos casos la respuesta MUST ser `403` aunque tenga `ROLES:UPDATE` o `USUARIOS:UPDATE`.
+
+#### Scenario: AUTHZ.13 — Empleado con permisos de gestión
+
+- GIVEN un usuario con `ROLES:UPDATE` y `USUARIOS:UPDATE`, sin superadmin
+- WHEN intenta asignarse a sí mismo o a otro usuario un rol superadmin por cualquiera de los tres endpoints
+- OR intenta agregar permisos a su propio rol con `PUT /api/permisos/roles/<su rol>`
+- THEN cada respuesta es `403`
+- AND ni los roles ni los permisos cambian
 
 #### Scenario: AUTHZ.12 — Kardex con el usuario del token
 

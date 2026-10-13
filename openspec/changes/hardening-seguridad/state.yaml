@@ -33,6 +33,8 @@ phases:
     open_questions:
       - Roles adicionales con "admin" en el nombre → ¿superadmin? (MANUAL, salida del --dry-run; no bloquea)
       - ¿Existe MP_WEBHOOK_SECRET en la cuenta de MercadoPago? (no bloquea)
+      - ¿El X-Forwarded-For de Azure App Service incluye el puerto (ip:puerto)? Si sí, keyGenerator que lo quite (verificar en el primer deploy de WU1)
+    review_addressed: "Revisión del SDD del 2026-10-13: deploy en dos etapas (WU1 → main + script; WU2-5 → change branch, un merge), shim de transición del token, AUTHZ.13 anti-escalada, AUTH.16/17, trust proxy, GET_LOCK en setup"
   tasks:
     status: done
     artifact: openspec/changes/hardening-seguridad/tasks.md

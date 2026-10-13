@@ -76,6 +76,7 @@ export const session = {
 };
 ```
 
+- `session` guarda el snapshot **en memoria** (`let current`): `get()` nunca lee el storage ni crea objetos nuevos. Solo `set`, `updateUsuario`, `clear` y el evento `storage` reemplazan `current`. Es un requisito de `useSyncExternalStore`: si `getSnapshot` devolviera una referencia nueva en cada llamada, React entraría en un bucle de renders.
 - La lectura inicial hace la migración legacy (SES.3): adopta `adminToken`/`adminUser` si no hay `token`, y borra las claves legacy siempre.
 - Escucha `window` `storage` sobre la clave `token` y vuelve a leer (SES.6).
 - `menuConfig.getAdminInfo()` se reemplaza por `session.get()?.usuario`.
@@ -145,11 +146,17 @@ Los parámetros `userToken` desaparecen de `checkoutService.fetchUserAddresses/f
 ```yaml
 - name: Sin llamadas HTTP directas
   run: |
-    ! grep -rnE "fetch\(|localhost:[0-9]+" src
-    ! grep -rnE "from ['\"]axios['\"]" src | grep -v "^src/shared/api/client.ts"
+    violaciones=$(grep -rnE "fetch\(|localhost:[0-9]+|from ['\"]axios['\"]" src | grep -v "^src/shared/api/" || true)
+    if [ -n "$violaciones" ]; then echo "$violaciones"; exit 1; fi
 ```
 
-`eslint.config.js`: `no-restricted-globals: ['error', 'fetch']` y `no-restricted-imports` para `axios`, con override en `src/shared/api/client.ts`.
+No se usa `! grep …`: con `bash -e`, un comando negado con `!` no aborta el paso, así que solo contaría la última línea.
+
+`eslint.config.js`: hoy solo cubre `**/*.{js,jsx}` (línea 9). Se agrega un bloque para `**/*.{ts,tsx}` con `typescript-eslint`, y las reglas `no-restricted-globals: ['error', 'fetch']` y `no-restricted-imports` (`axios`) se aplican a ambos bloques, con override para `src/shared/api/**` (`errors.ts` importa el tipo `AxiosError`).
+
+## 8. Parche de compatibilidad en el backend
+
+`TiendasMassBack-main/src/controllers/cliente.controller.ts:18,119`: `const usuarioId = payload?.userId ?? payload?.id;`. Es el único 401 "normal" del backend actual que, con el manejo de 401 de §1, cerraría sesiones válidas (`profile.jsx:65` llama a `/clientes/me` al montar). `hardening-seguridad` lo reemplaza por `req.user.id`.
 
 ## Archivos
 
@@ -159,7 +166,9 @@ Los parámetros `userToken` desaparecen de `checkoutService.fetchUserAddresses/f
 | `src/features/{auth,catalogo,tiendas,checkout,perfil}/api.ts`, `src/features/admin/*/api.ts` | Crear |
 | `src/context/userContext.jsx`, `src/admin/menuConfig.js`, `src/components/AdminRoute.jsx` | Modificar |
 | Los 41 archivos con llamadas HTTP (lista en `tasks.md`) + `useCheckoutForm.js`, `useCheckoutData.js` | Modificar |
-| `vite.config.js`, `tsconfig.json` (alias `@/`), `eslint.config.js`, `package.json` (`msw`), `.github/workflows/frontend.yml` | Modificar |
+| `vite.config.js`, `tsconfig.json` (alias `@/`), `eslint.config.js` (bloque TS + `typescript-eslint`), `package.json` (`msw`, `typescript-eslint`), `.github/workflows/frontend.yml` | Modificar |
+| `TiendasMassBack-main/src/controllers/cliente.controller.ts` | Modificar (§8) |
+| `TiendasMassBack-main/test/integration/clientes-me.test.ts` | Crear |
 | `tests/unit/shared/{client,assets,session}.test.ts`, `tests/unit/shared/usePermisos.test.tsx`, `tests/unit/admin/AdminRoute.test.tsx`, `tests/unit/features/admin/productos.api.test.ts` | Crear |
 
 ## Tests que acompañan el change
@@ -172,4 +181,6 @@ Los parámetros `userToken` desaparecen de `checkoutService.fetchUserAddresses/f
 | ADM.2 | `usePermisos.test.tsx`: 3 consumidores montados, msw cuenta 1 request |
 | ADM.3 a ADM.6 | `AdminRoute.test.tsx` con `MemoryRouter` |
 | Envío de `FormData` en productos | `productos.api.test.ts`: msw recibe `multipart/form-data` con `imagen` |
+| ADM.1 | Tarea 2.4: grep de mapas ruta → módulo fuera de `menuConfig.js` (p. ej. `/admin/productos` como string en `src/`) |
+| Parche §8 | `clientes-me.test.ts`: token con `{ userId }` → 200 |
 | SES.2, SES.5, HTTP.11 | Verificación manual (checklist de `tasks.md`) |

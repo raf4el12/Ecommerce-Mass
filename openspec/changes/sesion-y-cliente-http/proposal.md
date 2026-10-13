@@ -25,7 +25,7 @@ Sí, de forma acotada:
 | `/api/permisos/me/modulos` se pide 3 veces por carga del admin | Una vez por sesión (cacheado) |
 | Las URLs de imágenes se arman a mano con `localhost` | `assetUrl()` desde `VITE_API_URL` |
 
-Ningún endpoint del backend cambia.
+Ningún endpoint del backend cambia de contrato. El único cambio en el backend es un parche de compatibilidad: `cliente.controller.ts:18,119` lee `payload.id`, pero el token que guarda el front (el del OTP) trae `userId`. Hoy `GET /api/clientes/me` responde 401 y la pantalla lo ignora; con el manejo de 401 de este change, ese 401 cerraría la sesión de todo cliente que abra su perfil. El controller pasa a leer `payload.userId ?? payload.id`, y `hardening-seguridad` lo reemplaza por `req.user`.
 
 ## Alcance
 
@@ -36,7 +36,7 @@ Ningún endpoint del backend cambia.
 - `UsuarioProvider` pasa a ser un wrapper de React sobre `session`, con la misma API pública.
 - Hook `usePermisos()` con caché por sesión; `AdminRoute` con control por módulo; `Sidebar` y `Dashboard` leen del mismo hook.
 - Migración de **todas** las llamadas HTTP a `src/features/<feature>/api.ts` (y `src/features/admin/<recurso>/api.ts`).
-- Barrera en CI: 0 `fetch(`, 0 `localhost:` y 0 `import axios` fuera de `src/shared/api/client.ts`.
+- Barrera en CI: 0 `fetch(`, 0 `localhost:` y 0 `import axios` fuera de `src/shared/api/` (allí viven el fallback de desarrollo y los orígenes legacy de `assetUrl`).
 
 ### Excluido
 
@@ -75,6 +75,7 @@ Ningún endpoint del backend cambia.
 | Riesgo | Probabilidad | Mitigación |
 |---|---|---|
 | Una pantalla deja de funcionar por un detalle de payload (fetch y axios serializan distinto, sobre todo `FormData` en productos) | Media | Test del `api.ts` de productos con `FormData`; checklist manual por pantalla en `tasks.md` |
+| Un 401 que hoy se ignora pasa a cerrar la sesión | Media | Inventario de los 401 "normales" del backend actual: el único encontrado es `/api/clientes/me` y se corrige con el parche de compatibilidad. Los tokens vencidos hoy responden 403 (`verificarToken.ts:20`), así que la redirección por vencimiento recién actúa con `hardening-seguridad` |
 | La redirección por 401 entra en bucle en las pantallas de login | Baja | Solo redirige si la request llevó token (HTTP.5) |
 | Usuarios con `adminToken` guardado pierden la sesión | Baja | Migración automática de las claves legacy (SES.3) |
 | Sesión única: alguien usaba admin y cliente con cuentas distintas en el mismo navegador | Baja | Comportamiento declarado. Si hace falta, se usa otro perfil del navegador |
@@ -90,9 +91,10 @@ Ningún endpoint del backend cambia.
 
 ## Criterios de éxito
 
-- [ ] `grep -rnE "fetch\(|localhost:[0-9]" src` → 0 resultados. `import axios` solo en `src/shared/api/client.ts`.
+- [ ] `grep -rnE "fetch\(|localhost:[0-9]|from ['\"]axios['\"]" src | grep -v '^src/shared/api/'` → 0 resultados.
 - [ ] En el navegador, todas las requests con sesión llevan `Authorization`.
 - [ ] Login de admin → logout → `/admin/dashboard` redirige a `/admin/login`.
 - [ ] Un usuario solo con `PRODUCTOS` no puede abrir `/admin/usuarios` escribiendo la URL.
 - [ ] Un checkout completo crea el pedido con `Authorization`.
+- [ ] Un cliente abre su perfil y sigue con la sesión iniciada (`/api/clientes/me` → 200).
 - [ ] `npm test` en verde, con tests de `client`, `session`, `assets` y `usePermisos`.

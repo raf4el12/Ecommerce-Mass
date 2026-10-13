@@ -27,8 +27,8 @@ Sí:
 ### Incluido
 
 - `modules/ventas/domain`: `Pedido` (agregado: líneas, totales y transiciones), `LineaPedido`, `Dinero`, `EstadoPedido`, `PoliticaImpuestos` y errores.
-- `application`: `CrearPedido` (en una transacción: precios de `catalogo.api`, comisión de `pagos.api`, `inventario.reservarStock`, persistencia), `CambiarEstadoPedido`, `CancelarPedido` (con `inventario.liberarStock`), `ConfirmarPagoPedido` y `RechazarPagoPedido` (para `pagos`), y consultas (`PedidoPorId`, `PedidosDeUsuario`, `ListarPedidos`).
-- `infrastructure`: `PedidoEntity` y `DetallePedidoEntity` (mismas tablas), `MetodoEnvioEntity`, repositorio y mappers.
+- `application`: `CrearPedido` (en una transacción: precios por el puerto `PreciosCatalogo`, comisión por el puerto `ComisionesPago`, `inventario.reservarStock`, persistencia), `CambiarEstadoPedido`, `CancelarPedido` (con `inventario.liberarStock`), `ConfirmarPagoPedido` y `RechazarPagoPedido` (para `pagos`), y consultas (`PedidoPorId`, `PedidosDeUsuario`, `ListarPedidos`).
+- `infrastructure`: `PedidoEntity` y `DetallePedidoEntity` (mismas tablas), `MetodoEnvioEntity`, repositorio y mappers. También los **adaptadores legacy** de `PreciosCatalogo` y `ComisionesPago`, que leen `Producto` y `MetodoPago` con TypeORM. `catalogo` (change 12) y `pagos` (change 9) migran después que `ventas`; cuando expongan su `api`, solo se reemplaza el adaptador en `buildVentas`.
 - `http`: las rutas `/api/pedidos` vigentes (tras `hardening-seguridad`) con Zod, y `/api/metodos-envio`.
 - Front: `features/checkout/` (carrito → pedido) y `features/admin/pedidos/` (`ReportesPedidos` partido en listado, detalle, impresión y exportación CSV).
 
@@ -53,6 +53,7 @@ Sí:
 ## Dependencias
 
 - `contexto-inventario` (reserva y liberación) y `core-backend`.
+- **No** depende de `contexto-pagos` ni de `contextos-crud`: usa puertos con adaptadores legacy (ver Alcance).
 
 ## Decisiones abiertas (del negocio, bloquean el spec)
 

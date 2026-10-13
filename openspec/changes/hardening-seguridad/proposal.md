@@ -28,7 +28,8 @@ Además unifica la autenticación en un solo flujo y un solo middleware, lo que 
 | Recursos propios | Direcciones, tarjetas y pedidos de cualquier usuario se acceden por id | Solo los del dueño (o con permiso del módulo) |
 | Registro | Acepta `rolId`/`estadoId` | `POST /usuarios/register` fuerza rol cliente y estado activo. El alta con rol pasa a `POST /usuarios` (permiso `USUARIOS:CREATE`) |
 | Superadmin | Rol cuyo nombre contiene "admin" | Columna `Rol.esSuperAdmin` |
-| Módulos | Sin `KARDEX` ni `ROLES` (el kardex usa `PRODUCTOS` y permisos usa `MASTER_TABLE`) | Se agregan `KARDEX` y `ROLES`; se migran los permisos existentes para no quitarle acceso a nadie |
+| Módulos | Sin `KARDEX` ni `ROLES` (el menú muestra kardex con `PRODUCTOS` y permisos con `MASTER_TABLE`, pero el backend de permisos exige `requireAdmin`) | Se agregan `KARDEX` (se otorga a quien tiene `PRODUCTOS`) y `ROLES` (no se otorga a nadie: gestionar roles sigue siendo del superadmin, como hoy, hasta que un superadmin lo delegue) |
+| Gestión de roles | Cualquier rol "admin*" | Asignar un rol superadmin, editar los permisos de un rol superadmin o los de tu propio rol: solo un superadmin (AUTHZ.13) |
 | Pagos | `PATCH /pedidos/:id/estado-pago` y `POST /pedidos/pagar` públicos; preferencia con `items` del body; `/confirm` busca "el último pagado" | Los dos endpoints **se eliminan**. La preferencia se arma desde el pedido. `/confirm` exige token y ser el dueño. El webhook verifica el monto |
 | Pedido | `usuarioId` del body | Usuario del token |
 | Diagnóstico | `GET /api/diagnostics` público, con mensajes de error internos | **Se elimina** (`/health` cubre la disponibilidad) |
@@ -41,7 +42,8 @@ Además unifica la autenticación en un solo flujo y un solo middleware, lo que 
 - `src/core/auth/{tokens,authenticate,authorize}.ts`. Se borran `verificarToken.ts`, `requirePermiso.ts`, `requireAdmin.ts` y `adminAuth.middleware.ts`.
 - Flujo de login con challenge, OTP con `crypto.randomInt`, `codigoDev` solo en `development` y rate limit en login/OTP.
 - Aplicación de la matriz de rutas a todos los routers.
-- `Rol.esSuperAdmin`, módulos `KARDEX`/`ROLES` y script de datos para migrar los permisos existentes.
+- `Rol.esSuperAdmin`, módulos `KARDEX`/`ROLES`, reglas contra la auto-escalada (AUTHZ.13) y script de datos para migrar los permisos existentes.
+- `trust proxy` configurable para que el rate limit vea la IP real del cliente detrás de Azure.
 - `Usuario.password` con `select: false`; respuestas sin password.
 - Pedidos y pagos: `usuario` del token, preferencia desde el pedido, `/confirm` seguro, verificación de monto e idempotencia en el webhook, endpoints inseguros eliminados.
 - Frontend: flujo de login con `challenge` (tienda y admin), alta de usuarios del admin vía `POST /usuarios`, `menuConfig` con `KARDEX`/`ROLES` y escape en `ReportesPedidos`.
@@ -67,7 +69,7 @@ Además unifica la autenticación en un solo flujo y un solo middleware, lo que 
 ## Enfoque
 
 1. **Primero el núcleo de auth** (`core/auth/*`) con tests unitarios y de integración. Todavía no se aplica a las rutas.
-2. **Flujo de login nuevo** en backend y frontend, en el mismo PR y con deploy coordinado.
+2. **Flujo de login nuevo** en backend y frontend, en el mismo PR. Durante la transición, el `verificarToken` legacy acepta el payload nuevo (`sub`) hasta que `authenticate` lo reemplace.
 3. **Matriz de rutas**, router por router, cada uno con sus tests de "sin token → 401 / sin permiso → 403 / con permiso → 2xx".
 4. **Pagos y pedidos**.
 5. **Limpieza**: borrar los middlewares viejos y los endpoints eliminados, y aplicar el escape XSS.
@@ -90,9 +92,10 @@ Además unifica la autenticación en un solo flujo y un solo middleware, lo que 
 | Riesgo | Probabilidad | Mitigación |
 |---|---|---|
 | Se protege una ruta que una pantalla usa sin sesión y la pantalla se rompe | Media | La matriz se armó cruzando cada ruta con sus consumidores en el front. Verificación manual por pantalla en `tasks.md`. Requiere que `sesion-y-cliente-http` ya esté desplegado |
-| Un usuario pierde acceso a kardex o permisos al crear los módulos nuevos | Media | Script que otorga `KARDEX:*` a los roles con `PRODUCTOS:*` y `ROLES:*` a los roles con `MASTER_TABLE:*` (el mapeo de hoy en el menú). Se corre antes del deploy y se revisa su salida |
+| Un usuario pierde acceso a kardex al crear el módulo nuevo | Media | El script otorga `KARDEX:*` a los roles con `PRODUCTOS:*`. `ROLES` no se mapea desde `MASTER_TABLE`: eso **ampliaría** el acceso, porque hoy el backend de permisos exige `requireAdmin` |
+| Si las rutas protegidas salen antes que el script, ningún rol es superadmin y todos los admins reciben 403 | Media | Secuencia de deploy fija (`tasks.md` Fase 6): WU1 va primero a `main`; su arranque crea `esSuperAdmin` y los valores del enum (`synchronize`); luego se corre el script en producción y recién después se fusiona el resto |
 | Un rol que hoy es "admin" por su nombre deja de serlo | Media | El script marca `esSuperAdmin` en los roles cuyo nombre es exactamente `admin`/`administrador` y **lista** los demás que contienen "admin" para que el usuario decida (tarea MANUAL) |
-| El front y el back se despliegan desfasados y el login falla unos minutos | Media | Deploy coordinado: el backend primero y el front inmediatamente después. Ventana de mantenimiento corta, comunicada |
+| El front y el back se despliegan desfasados y el login falla unos minutos | Media | WU2 a WU5 se integran en la rama `change/hardening-seguridad` y entran a `main` con **un** merge, que dispara los dos workflows a la vez. Ventana corta y comunicada |
 | La preferencia de MP no suma exacto por redondeo | Baja | La línea de ajuste se calcula como diferencia en céntimos enteros (`design.md` §6) |
 | Tokens emitidos antes del deploy (payload `{userId}`/`{id}`) | Alta (esperado) | Se rechazan con 401 y el usuario vuelve a iniciar sesión. Comportamiento declarado |
 

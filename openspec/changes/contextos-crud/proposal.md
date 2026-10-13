@@ -19,7 +19,7 @@ Sí, en lo puntual:
 
 ### Incluido
 
-- `modules/catalogo/{productos,categorias,subcategorias}`. La lectura de stock viene de `inventario.api`; el stock no se escribe aquí.
+- `modules/catalogo/{productos,categorias,subcategorias}`. La lectura de stock viene de `inventario.api`; el stock no se escribe aquí. `catalogo.api.obtenerPrecios(ids)` reemplaza el adaptador legacy del puerto `PreciosCatalogo` de `ventas`.
 - `modules/tiendas/`.
 - `modules/configuracion/{master-table,estados}`.
 - `modules/reportes/dashboard` (consultas de solo lectura sobre ventas, catálogo e inventario).

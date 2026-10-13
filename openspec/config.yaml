@@ -53,7 +53,7 @@ rules:
   tasks:
     - Agrupar por fase con numeración jerárquica (1.1, 1.2…)
     - Cada tarea completable en una sesión; PRs de ≤ 400 líneas cambiadas salvo borrados mecánicos
-    - Tests de lógica nueva o cambiada en la MISMA tarea que la implementación (TEST antes de IMPL)
+    - Tests de lógica nueva o cambiada en el MISMO work unit que la implementación, con la tarea TEST inmediatamente antes de su IMPL
     - Referenciar IDs de escenario del spec en las tareas TEST
     - Marcar como MANUAL las tareas que solo puede hacer una persona (secrets, consola Azure)
   apply:
@@ -63,6 +63,7 @@ rules:
       - Un change a la vez; no mezclar refactor estructural con cambios de comportamiento no declarados en el spec
       - Código nuevo del backend va en src/modules/ o src/core/, nunca en controllers/ services/ routes/ legacy
       - Código nuevo del frontend va en src/shared/ o src/features/, nunca usa fetch() ni URLs hardcodeadas
+      - Los PRs de cada work unit van contra la rama change/<nombre>; solo esa rama entra a main (main despliega en cada push), salvo los work units marcados como desplegables por separado
   verify:
     test_command: "npm test"
     build_command: "npx tsc --noEmit (backend) && npm run build (frontend)"

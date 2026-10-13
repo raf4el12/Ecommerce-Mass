@@ -13,11 +13,13 @@ Este change **no** reorganiza el código en `src/modules/`. Lo nuevo va en `src/
 | Ligar password y OTP | `challenge` = JWT RS256 de 10 min con `typ: "otp-challenge"` | Guardar el challenge en la tabla OTP; sesión en el servidor | Sin estado nuevo en la DB; reutiliza las llaves existentes; `typ` impide usarlo como token de acceso y viceversa |
 | Payload del token de acceso | `{ sub, rol, typ: "access" }` | Mantener `userId` | `sub` es el estándar. Los tokens viejos dejan de servir, y eso se declara. `rol` es solo informativo: la autorización siempre consulta la DB |
 | `authenticate` consulta la DB | Sí: una query por request (usuario + rol + permisos) | Confiar solo en el token | Un usuario desactivado o con permisos revocados pierde el acceso al instante (AUTH.14); el costo es una query por PK |
-| Superadmin | Columna `Rol.esSuperAdmin boolean default false` | Rol con id fijo; nombre exacto | Explícito, editable solo por un superadmin y sin depender de ids ni de textos |
+| Superadmin | Columna `Rol.esSuperAdmin boolean default false` | Rol con id fijo; nombre exacto | Explícito, editable solo por un superadmin (AUTHZ.13) y sin depender de ids ni de textos |
+| Transición del payload del token | WU2 cambia el payload a `{ sub, … }`; el `verificarToken` legacy agrega `userId` e `id` a partir de `sub` hasta que WU3 pase todas las rutas a `authenticate` y WU5 lo borre | Cambiar payload y middlewares en el mismo PR | Sin el shim, `requirePermiso`, `requireAdmin` y `permisos.controller` leen `userId` y responden 401 con los tokens nuevos: la verificación de WU2 sería imposible |
 | Dueño del recurso | Helper `requireSelfOr(modulo, accion, getOwnerId)` + verificación en el controller cuando el dueño sale de la DB | Políticas genéricas (CASL) | Son 5 recursos; un helper alcanza (sin abstracciones preventivas) |
 | Endpoints de pago inseguros | **Eliminar** (`PATCH estado-pago`, `POST pagar`) | Protegerlos con `PEDIDOS:UPDATE` | El front no los usa (grep) y su existencia contradice ADR-15. Si el admin necesitara marcar pagos manuales (p. ej. efectivo en tienda), se diseña en `contexto-pagos` con auditoría |
 | Línea de ajuste en la preferencia de MP | Ítems reales + una línea "Envío, impuestos y comisión" calculada como diferencia en céntimos | Un único ítem "Pedido #N"; prorratear | El comprador ve sus productos en MercadoPago y la suma es exacta por construcción |
-| Rate limit | `express-rate-limit` en memoria, 10 req/15 min por IP, configurable con `AUTH_RATE_LIMIT` | Redis; por email | Hay una sola instancia en Azure. Si se escala horizontalmente, se cambia el store |
+| Rate limit | `express-rate-limit` en memoria, 10 req/15 min por IP, configurable con `AUTH_RATE_LIMIT`. El limitador se crea con `crearRateLimit(max)` dentro de `createApp()`, no al cargar el módulo | Redis; por email | Hay una sola instancia en Azure. Si se escala horizontalmente, se cambia el store. Crearlo en `createApp` permite que cada test fije su propio límite |
+| IP del cliente | `app.set('trust proxy', env.TRUST_PROXY)` (por defecto `false`; `1` en Azure) | Sin configurar | Detrás del proxy de Azure, `req.ip` sería la IP del proxy y todos compartirían el límite. express-rate-limit ≥ 7 además reporta `ERR_ERL_UNEXPECTED_X_FORWARDED_FOR`. Verificar en Azure si `X-Forwarded-For` incluye el puerto (`ip:puerto`); si lo incluye, usar un `keyGenerator` que lo quite |
 | `GET /api/diagnostics` | Eliminar | Protegerlo | Duplica `/health` y expone `error.message` interno |
 
 ## 1. `src/core/auth/tokens.ts`
@@ -51,11 +53,14 @@ export function authorize(...alternativas: [AdminModulo, AdminAccion][]): Reques
 export function requireSelfOr(modulo: AdminModulo, accion: AdminAccion, ownerId: (req) => number | undefined): RequestHandler
   // ownerId(req) === req.user.id || tiene permiso → next; si no → 403
 export function puede(user, modulo, accion): boolean   // para controllers que conocen al dueño después de leer la DB
+export const requireSuperAdmin: RequestHandler          // para POST /api/permisos/seed
 ```
 
 - `authorize(...)` siempre va después de `authenticate`.
 - `requireSelfOr` cubre los casos con el dueño en la URL (`/usuario/:usuarioId`, `/update/:id`). Para `/:id` de direcciones, tarjetas y pedidos, el controller lee el recurso y usa `puede()` o compara `recurso.usuarioId === req.user.id`.
 - `GET /api/permisos/me/modulos` usa `req.user`: si es superadmin, todos los módulos; si no, los de `req.user.permisos`.
+- **Anti-escalada (AUTHZ.13):** `permisos.controller.reemplazarPermisosRol` y `asignarRol`, y `usuarios` (`update` y `crearUsuarioAdmin`), leen el rol destino y responden 403 si el rol es superadmin y `req.user` no lo es. Lo mismo si el rol destino es el propio rol de `req.user`, o si el usuario destino es `req.user` cambiando su rol.
+- **Shim de transición (solo WU2 a WU4):** `middlewares/verificarToken.ts` hace `decoded.userId ??= Number(decoded.sub); decoded.id ??= Number(decoded.sub)`. Se borra en WU5 junto con el archivo.
 
 ## 3. Matriz de rutas
 
@@ -71,18 +76,18 @@ Leyenda: **P** = público · **A** = autenticado · **D(M:X)** = dueño o permis
 | `GET /api/auth/verify` | P (verifica a mano) | A | — |
 | `POST /api/usuarios/login` | P (token sin OTP) | ~~eliminado~~ | `LoginForm` (se quita) |
 | `POST /api/usuarios/register` | P (acepta `rolId`) | P; rol cliente + estado activo forzados | `RegisterForm` |
-| `POST /api/usuarios` | P (alias de register) | `USUARIOS:CREATE` | `CrearAdmin`, `GestionUsuarios` |
+| `POST /api/usuarios` | P (alias de register) | `USUARIOS:CREATE`; rol superadmin solo por superadmin (USR.3) | `CrearAdmin`, `GestionUsuarios` |
 | `GET /api/usuarios` | P (con hashes) | `USUARIOS:READ` | `GestionUsuarios` |
 | `GET /api/usuarios/:id` | P | D(`USUARIOS:READ`) | `Perfil`, `userContext` |
-| `PUT /api/usuarios/update/:id` | `USUARIOS:UPDATE` | D(`USUARIOS:UPDATE`); `rolId`/`estadoId` solo con el permiso | `profile`, `GestionUsuarios` |
+| `PUT /api/usuarios/update/:id` | `USUARIOS:UPDATE` | D(`USUARIOS:UPDATE`); `rolId`/`estadoId` solo con el permiso; rol superadmin o el propio rol: solo superadmin (AUTHZ.13) | `profile`, `GestionUsuarios` |
 | `DELETE /api/usuarios/delete/:id` | `USUARIOS:DELETE` | `USUARIOS:DELETE` | `GestionUsuarios` |
 | `GET /api/roles`, `/:id` | P | `USUARIOS:READ` o `ROLES:READ` | `GestionUsuarios`, `CrearAdmin`, `GestionPermisos` |
 | `POST/PUT/DELETE /api/roles` | adminAuth (HS256, roto) | `ROLES:CREATE/UPDATE/DELETE` | `GestionPermisos` |
 | `GET /api/permisos/me/modulos` | verificarToken | A | `usePermisos` |
 | `GET /api/permisos/catalogo`, `/roles/:roleId` | requireAdmin | `ROLES:READ` | `GestionPermisos` |
-| `PUT /api/permisos/roles/:roleId` | requireAdmin | `ROLES:UPDATE` | `GestionPermisos` |
-| `PATCH /api/permisos/usuarios/:id/rol` | requireAdmin | `ROLES:UPDATE` | `GestionPermisos` |
-| `POST /api/permisos/seed` | requireAdmin | superadmin | — |
+| `PUT /api/permisos/roles/:roleId` | requireAdmin | `ROLES:UPDATE` + AUTHZ.13 | `GestionPermisos` |
+| `PATCH /api/permisos/usuarios/:id/rol` | requireAdmin | `ROLES:UPDATE` + AUTHZ.13 | `GestionPermisos` |
+| `POST /api/permisos/seed` | requireAdmin | `requireSuperAdmin` | — |
 | `GET /api/products`, `/:id`, `POST /bulk` | P | P | catálogo |
 | `POST/PUT/DELETE /api/products` | P | `PRODUCTOS:CREATE/UPDATE/DELETE` | `GestionProducto` |
 | `GET /api/categorias`, `/:id` | P | P | catálogo |
@@ -142,6 +147,7 @@ LoginForm / AdminLogin            Backend                                     Em
 ```
 
 - `otp.service.ts`: `generarCodigo` pasa a `crypto.randomInt(100000, 1000000)`. `validarOTP` rechaza cuando `intentos >= 5` (hoy solo incrementa). `crearOTP` invalida los OTP vigentes anteriores del mismo email (lo usa `reenviar`, AUTH.10).
+- El challenge lleva `jti` (`crypto.randomUUID()`) y `OTP` gana la columna `challengeJti` (aditiva). `reenviar` cuenta los OTP con ese `jti`: con 4 o más (el original + 3 reenvíos) responde 429 (AUTH.16); si alguno llegó a 5 intentos, responde 401 (AUTH.6).
 - `codigoDev`: solo con `env.NODE_ENV === 'development'` (AUTH.11).
 - Frontend: `LoginForm` hace una sola llamada y pasa `{ email, challenge }` a `OTPVerificationForm`. Ese formulario recibe `onVerified(data)`: la tienda navega a `/admin/dashboard` si `usePermisos` devuelve módulos y a `/` si no (ya no compara nombres de rol). `AdminLogin` reutiliza el mismo formulario como segundo paso.
 
@@ -151,7 +157,7 @@ LoginForm / AdminLogin            Backend                                     Em
 - `register`: busca el rol con `LOWER(nombre) = 'cliente'` y el estado con `LOWER(nombre) = 'activo'` **antes** de abrir la transacción actual. Si no existen, responde 500 y registra el error. El front (`RegisterForm.jsx:132`) deja de enviar `rolId`.
 - Nuevo controller `crearUsuarioAdmin` para `POST /api/usuarios`: reutiliza la lógica de `register` pero toma `rolId`/`estadoId`, y verifica USR.3 (solo un superadmin asigna roles superadmin). `GestionUsuarios.jsx:235` pasa de `/usuarios/register` a `usuariosApi.crear`.
 - `update`: si `req.user.id !== id` y el usuario no tiene `USUARIOS:UPDATE` → 403. Si el body trae `rolId` o `estadoId` sin `USUARIOS:UPDATE` → 403 (AUTHZ.8).
-- `setup/create-admin`: `count()` y el `save` dentro de `AppDataSource.transaction`; el rol creado o reutilizado queda con `esSuperAdmin = true`.
+- `setup/create-admin`: toma `SELECT GET_LOCK('setup_admin', 10)` antes del `count()` y la libera con `RELEASE_LOCK` al final. Un `count()` + `save` dentro de una transacción no es atómico en MySQL con `REPEATABLE READ`. El rol creado o reutilizado queda con `esSuperAdmin = true`.
 
 ## 6. Pedidos y pagos
 
@@ -170,7 +176,7 @@ items       = lineas con unit_price = unit_price_cents / 100, currency_id: "PEN"
 payer.email = usuario.email ; external_reference = String(pedido.id) ; metadata.orderId = pedido.id
 ```
 
-**Webhook (`payments.webhook.ts`):**
+**Webhook (`payments.webhook.ts`):** el router recibe `mpClient` por parámetro, igual que `payments.mp.ts`, para poder simularlo en PAG.4 a PAG.6.
 
 ```
 si MP_WEBHOOK_SECRET → validar x-signature (HMAC-SHA256 del manifest "id:<data.id>;request-id:<x-request-id>;ts:<ts>;",
@@ -199,9 +205,9 @@ si status ∈ {rejected, cancelled} y estadoPago === PENDIENTE → FALLIDO
   1. Marca `esSuperAdmin = true` en los roles cuyo `LOWER(nombre)` es exactamente `admin` o `administrador`.
   2. **Lista** (no modifica) los demás roles cuyo nombre contiene "admin", para la decisión MANUAL.
   3. Crea las filas `Permiso` de `KARDEX` y `ROLES` × 4 acciones.
-  4. Por cada `RolPermiso` con `PRODUCTOS:<acción>`, inserta `KARDEX:<acción>`; por cada uno con `MASTER_TABLE:<acción>`, inserta `ROLES:<acción>` (AUTHZ.11).
+  4. Por cada `RolPermiso` con `PRODUCTOS:<acción>`, inserta `KARDEX:<acción>` (AUTHZ.11). `ROLES` **no** se otorga a ningún rol: hoy la gestión de permisos exige `requireAdmin`, y esos roles quedan como superadmin en el paso 1.
   5. Imprime los ids insertados (para el rollback).
-- `src/scripts/seed.ts`: el rol `Administrador` se crea con `esSuperAdmin: true`, y la matriz de permisos incluye `KARDEX` y `ROLES`.
+- `src/scripts/seed.ts`: el rol `Administrador` se crea con `esSuperAdmin: true`, y la matriz de permisos da `KARDEX` a quien hoy tiene `PRODUCTOS` (Almacenero). `ROLES` no se asigna en el seed.
 - Front `menuConfig.js`: `kardex → KARDEX`, `permisos → ROLES`.
 
 ## 8. XSS en `ReportesPedidos`
@@ -210,7 +216,16 @@ si status ∈ {rejected, cancelled} y estadoPago === PENDIENTE → FALLIDO
 
 ## 9. Configuración nueva
 
-`env.ts` agrega `AUTH_RATE_LIMIT` (default 10; en `.env.test`, 1000, salvo en el test de AUTH.12, que lo fija a 3), `MP_WEBHOOK_SECRET` (opcional) y `MP_ACCESS_TOKEN`. `JWT_SECRET` desaparece de `.env.example`.
+`env.ts` agrega:
+
+- `AUTH_RATE_LIMIT`: por defecto 10; en `.env.test`, 1000. El test de AUTH.12 construye su propia app con `createApp({ authRateLimit: 3 })`.
+- `TRUST_PROXY`: por defecto `false`; `1` en Azure.
+- `MP_ACCESS_TOKEN`: obligatorio en production y opcional en test, porque los tests simulan el cliente de MercadoPago.
+- `MP_WEBHOOK_SECRET`: opcional.
+
+`JWT_SECRET` desaparece de `.env.example`.
+
+`createApp` (de `estabilizar-base`) gana un parámetro opcional: `createApp(opciones?: { authRateLimit?: number })`, que por defecto usa `env.AUTH_RATE_LIMIT`. `core-backend` lo extiende después con `routers`.
 
 ## Archivos
 
@@ -223,7 +238,8 @@ si status ∈ {rejected, cancelled} y estadoPago === PENDIENTE → FALLIDO
 | `src/routes/*.routes.ts` (todos), `src/routes/payments.{mp,webhook}.ts` | Modificar (matriz §3, §6) |
 | `src/controllers/{auth,usuarios,permisos,cliente,direccion,tarjeta-usuario,pedido,kardex,setup}.controller.ts` | Modificar |
 | `src/services/{otp,pedido,kardex}.service.ts` | Modificar |
-| `src/entities/{Rol,Permiso,Usuario}.entity.ts` | Modificar |
+| `src/entities/{Rol,Permiso,Usuario,OTP}.entity.ts` | Modificar (`OTP.challengeJti`) |
+| `src/middlewares/verificarToken.ts` | Modificar en WU2 (shim) y borrar en WU5 |
 | `src/app.ts` | Modificar (quitar `/api/diagnostics`) |
 | `scripts/migrar-permisos-hardening.ts`, `src/scripts/seed.ts` | Crear / Modificar |
 | `test/helpers/{auth,factories}.ts`, `test/integration/**` | Crear |
@@ -235,10 +251,11 @@ Helpers: `crearUsuario({ rol, permisos, activo })` y `tokenPara(usuario)` en `te
 
 | Escenarios | Test |
 |---|---|
-| AUTH.1 a AUTH.15 | `test/integration/auth.test.ts` (envío de email simulado con un spy sobre el transporte de nodemailer) |
+| AUTH.1 a AUTH.17 | `test/integration/auth.test.ts` (envío de email simulado con un spy sobre el transporte de nodemailer; AUTH.17 con `X-Forwarded-For` y `TRUST_PROXY=1`) |
 | AUTHZ.1 a AUTHZ.4 | `test/integration/matriz-rutas.test.ts`: tabla parametrizada con todas las filas de §3 (sin token / sin permiso / con permiso) |
 | AUTHZ.5 a AUTHZ.8 | `test/integration/recursos-propios.test.ts` |
-| AUTHZ.9 a AUTHZ.12 | `test/integration/superadmin-y-modulos.test.ts` + test del script con `--dry-run` |
+| AUTHZ.9 a AUTHZ.13 | `test/integration/superadmin-y-modulos.test.ts` + test del script con `--dry-run` |
+| Smoke tests de `estabilizar-base` | `test/smoke/productos.test.ts` pasa a usar `tokenPara(superadmin)`: tras este change, `POST /api/products` sin token responde 401 antes de validar |
 | USR.1 a USR.7 | `test/integration/usuarios.test.ts` + chequeo recursivo de que no hay clave `password` en los bodies |
 | PED.1 a PED.5 | `test/integration/pedidos.test.ts` |
 | PAG.1 a PAG.8 | `test/integration/pagos.test.ts` con el cliente de MercadoPago simulado; PAG.3 como unitario de `construirItems()` |

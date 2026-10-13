@@ -22,7 +22,7 @@ Sí:
 - `application`: `IniciarPago(pedidoId, usuario)`, `ProcesarNotificacion(evento)` (llama a `ventas.api.confirmarPago`/`rechazarPago`) y `ConsultarPago`.
 - `infrastructure`: `MercadoPagoPasarela` (SDK), `PagoEntity`, repositorio y migración de la tabla `Pago`.
 - `http`: `payments.routes.ts` (las mismas URLs) y webhook.
-- `MetodoPago`: CRUD (comisión, activo) en este módulo; `pagos.api.comisionDe(metodoPagoId)` para `ventas`.
+- `MetodoPago`: CRUD (comisión, activo) en este módulo. `pagos.api.comisionDe(metodoPagoId)` reemplaza el adaptador legacy del puerto `ComisionesPago` de `ventas`.
 - Front: `features/checkout/pago/` (botón o redirect de MercadoPago, páginas `success`/`failure`/`pending` con `CheckoutSuccess` y `CheckoutPending` migrados) y `features/admin/metodos-pago/`.
 
 ### Excluido

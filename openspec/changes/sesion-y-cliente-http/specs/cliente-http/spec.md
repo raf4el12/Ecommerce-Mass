@@ -42,6 +42,8 @@ Si hay sesión, el cliente MUST adjuntar `Authorization: Bearer <token>` a cada 
 
 Ante un `401` en una request que **llevó** token, el cliente MUST cerrar la sesión y redirigir a `/admin/login` si la ruta actual empieza con `/admin`, o a `/login` en otro caso. Ante un `401` en una request **sin** token, MUST solo rechazar la promesa.
 
+> Nota: hasta `hardening-seguridad`, el backend responde `403` a los tokens vencidos (`verificarToken.ts:20`), así que este comportamiento se verifica con msw y empieza a actuar contra la API real con `hardening-seguridad`.
+
 #### Scenario: HTTP.5 — Token vencido en el admin
 
 - GIVEN una sesión activa
@@ -95,7 +97,7 @@ Las URLs de imágenes y archivos del backend MUST construirse con `assetUrl(path
 
 ### Requirement: Sin llamadas directas
 
-El código de `src/` MUST NOT contener `fetch(` ni URLs `localhost:<puerto>`, ni importar `axios` fuera de `src/shared/api/client.ts`. El CI MUST verificarlo.
+Fuera de `src/shared/api/`, el código de `src/` MUST NOT contener `fetch(` ni URLs `localhost:<puerto>`, ni importar `axios`. `src/shared/api/` queda exento porque contiene el fallback de desarrollo de `client.ts` y los orígenes legacy de `assetUrl`. El CI MUST verificarlo.
 
 #### Scenario: HTTP.11 — Barrera en CI
 

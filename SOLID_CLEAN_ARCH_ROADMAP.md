@@ -31,7 +31,7 @@
 | Código nuevo | El kardex (`f5b812e`), escrito *después* de la Fase 0, siguió el patrón legacy: sin repositorio, sin Zod, sin auth y con `usuario_id` tomado del body |
 | Build / deploy | `npx tsc` falla (`kardex.service.ts:98`). Los workflows de deploy están dentro de las subcarpetas, así que GitHub Actions nunca los ejecuta |
 | Seguridad | Registro con `rolId` libre, hashes de password expuestos, casi todo el CRUD sin auth, pagos manipulables, XSS en el admin (detalle en el [Apéndice A](#apéndice-a--diagnóstico-2026-10-11)) |
-| Backend | 115 accesos a `AppDataSource` en controllers. Solo 5 de 23 controllers usan un service. Dos formas de error (`{error}` ×131, `{message}` ×130). `synchronize: true` |
+| Backend | 108 referencias a `AppDataSource` en controllers. Solo 5 de 23 controllers usan un service. Dos formas de error (`{error}` ×131, `{message}` ×130). `synchronize: true` |
 | Frontend | 74 `fetch(` y 50 `localhost:5001` en 47 archivos. 5 convenciones HTTP. ~2.083 líneas muertas. Componentes de hasta 857 líneas. 62 errores de ESLint |
 
 **Por qué el plan v1 no servía:**
@@ -77,7 +77,8 @@ Pendientes de decidir: `Empleado` y `Reporte` no tienen uso. Se resuelven en `co
 
 ```
 identidad ──(core/auth: authenticate/authorize)──▶ todos
-ventas ──lee precios──▶ catalogo
+ventas ──lee precios (puerto PreciosCatalogo)──▶ catalogo
+ventas ──comisión del método de pago (puerto ComisionesPago)──▶ pagos
 ventas ──reservar/liberar stock (misma transacción)──▶ inventario
 ventas ──dirección de envío──▶ clientes
 pagos ──confirmarPago / rechazarPago──▶ ventas
@@ -102,7 +103,7 @@ src/
 │   ├── auth/
 │   │   ├── tokens.ts             # firmar/verificar access token y challenge de OTP (RS256)
 │   │   ├── authenticate.ts       # Bearer → req.user tipado
-│   │   └── authorize.ts          # authorize(modulo, accion), requireSelfOr(modulo, accion)
+│   │   └── authorize.ts          # authorize([modulo, accion], …), requireSelfOr, requireSuperAdmin
 │   ├── http/
 │   │   ├── errorHandler.ts       # forma única { message, code, details? }
 │   │   ├── validate.ts           # Zod sobre body/query/params
@@ -128,13 +129,15 @@ modules/ventas/
 │   ├── EstadoPedido.ts           # máquina de estados
 │   ├── PoliticaImpuestos.ts
 │   ├── errores.ts
-│   └── PedidoRepository.ts       # puerto (interfaz) — el único repositorio con interfaz del contexto
+│   ├── PedidoRepository.ts       # puerto (interfaz) — el único repositorio con interfaz del contexto
+│   └── puertos.ts                # PreciosCatalogo, ComisionesPago: lo que ventas necesita de otros contextos
 ├── application/
 │   ├── CrearPedido.ts            # transacción: precios de catálogo + reserva de stock + persistir
 │   ├── CancelarPedido.ts
 │   ├── ConfirmarPagoPedido.ts    # lo invoca pagos
 │   └── dtos.ts
 ├── infrastructure/
+│   ├── adaptadoresLegacy.ts      # implementan los puertos leyendo Producto/MetodoPago hasta que catalogo y pagos migren
 │   ├── PedidoEntity.ts           # TypeORM, @Entity("Pedido"): misma tabla de hoy
 │   ├── DetallePedidoEntity.ts
 │   ├── TypeOrmPedidoRepository.ts
@@ -143,7 +146,7 @@ modules/ventas/
 │   ├── pedidos.routes.ts
 │   ├── pedidos.controller.ts     # delgado: parsea → caso de uso → responde
 │   └── pedidos.schemas.ts        # Zod
-├── index.ts                      # buildVentas({ dataSource, inventario, catalogo }) → { router, api }
+├── index.ts                      # buildVentas({ dataSource, inventario, precios, comisiones }) → { router, api }
 └── __tests__/                    # unitarios de dominio + integración HTTP
 ```
 
@@ -202,7 +205,7 @@ src/
 | ADR-05 | Modelo de dominio | En contextos núcleo: clases puras + entidad TypeORM + mapper. En CRUD la entidad TypeORM es el modelo | Entidades TypeORM como dominio en todas partes | El dominio rico se testea sin DB; el costo del mapper solo se paga donde hay reglas |
 | ADR-06 | Esquema de base de datos | Migraciones TypeORM, `synchronize: false` | Mantener `synchronize: true` | Con `synchronize`, renombrar una columna en producción borra los datos. Es requisito para mover entidades |
 | ADR-07 | Autenticación | Un solo flujo: `POST /api/auth/login` (password) → challenge firmado → `POST /api/auth/otp/verificar` → access token RS256 `{ sub, rol }`. Llaves por variables de entorno | Dos logins con payloads distintos (hoy) | Hoy el password se valida solo en el cliente y `cliente.controller` lee `payload.id` mientras `requirePermiso` lee `payload.userId` |
-| ADR-08 | Autorización | `authorize(modulo, accion)` contra `Permiso`. Superadmin por columna `Rol.esSuperAdmin` | `rol.nombre.includes('admin')` (hoy) | Un rol llamado "Administrativo" hoy pasa como admin; el nombre es un texto editable |
+| ADR-08 | Autorización | `authorize([modulo, accion], …)` contra `Permiso`. Superadmin por columna `Rol.esSuperAdmin`. Asignar roles superadmin o editar los permisos de un rol superadmin o del propio rol: solo un superadmin | `rol.nombre.includes('admin')` (hoy) | Un rol llamado "Administrativo" hoy pasa como admin; el nombre es un texto editable. Sin la regla de superadmin, quien gestiona roles podría darse todos los permisos |
 | ADR-09 | Errores HTTP | Forma única `{ message, code, details? }` | `{error}` / `{message}` / `{status,message}` (hoy) | Mantiene `message`, que el front ya lee en todos lados (`data.message \|\| data.error`) |
 | ADR-10 | Front: organización | Por features + un cliente HTTP + una sesión | Por tipo (`api/`, `hooks/`, `components/`) como en v1 | Una feature se lee, se prueba y se borra entera; por tipo, cada cambio toca 4 carpetas |
 | ADR-11 | Front: TypeScript | Incremental: `allowJs`; archivos nuevos en `.ts/.tsx`; los existentes migran cuando se tocan | Big-bang / seguir en JS | Tipa los contratos de API sin frenar el resto |
@@ -241,7 +244,8 @@ Los changes 1 a 3 están especificados por completo, listos para `apply`. Del 4 
 
 Flujo SDD: **explore → proposal → spec → design → tasks → apply → verify → archive.**
 
-1. **Rama:** `estabilizar-base` se aplica sobre `refactor/clean-arch`, que después se fusiona a `main` (esa rama ya trae features: kardex y paginación). Desde el change 2, cada change va en su propia rama `change/<nombre>` desde `main`, con un PR por *work unit* de `tasks.md`.
+1. **Rama:** `estabilizar-base` se aplica sobre `refactor/clean-arch`, que después se fusiona a `main` (esa rama ya trae features: kardex y paginación). Desde el change 2, cada change va en su propia rama `change/<nombre>` desde `main`. Los PRs de cada *work unit* de `tasks.md` van **contra esa rama**, y la rama entra a `main` con un único merge.
+   - `main` despliega en cada push (CI.4). Por eso solo entran a `main` antes los work units que su `tasks.md` marca como desplegables por separado (por ejemplo, WU1 de `hardening-seguridad`).
 2. **Estado:** `openspec/changes/<nombre>/state.yaml` registra la fase y las notas. Las decisiones no obvias también se guardan en engram con el topic `sdd/<nombre>/<fase>`.
 3. **Apply:** TDD. Cada tarea `TEST` cita IDs de escenario del spec (p. ej. `AUTH.3`) y va antes de su `IMPL`.
 4. **Verify:** backend `npx tsc --noEmit && npm test`; frontend `npm test && npm run build`. Además, probar a mano los flujos que el spec nombra.
@@ -324,7 +328,7 @@ Auditoría de solo lectura sobre la rama `refactor/clean-arch`. Las rutas son re
 - **XSS almacenado:** `ReportesPedidos.jsx:156-215` arma HTML con `document.write` usando datos del cliente sin escapar.
 - **Bugs:** `perfil/metodopago.jsx:148` usa `numeroLimpio`, que no está definido; `/producto/:id` siempre sale en blanco (`App.jsx:68`); el ícono de WhatsApp apunta a una ruta de Windows.
 - `GestionCategorias` y `GestionSubcategorias` son copias en un 80%. Email validado con 5 regex distintas. `AdminTable` se usa en 7 de 13 pantallas.
-- ~2.083 líneas muertas (22 archivos). 62 errores de ESLint. Sin lazy loading. 3.599 líneas de CSS en paralelo a Tailwind. Un solo archivo de tests (47 tests que pasan) sin bloque `test` en `vite.config.js`. `test-results/` commiteado.
+- ~2.083 líneas muertas (23 archivos). 62 errores de ESLint. Sin lazy loading. 3.599 líneas de CSS en paralelo a Tailwind. Un solo archivo de tests (47 tests que pasan) sin bloque `test` en `vite.config.js`. `test-results/` commiteado.
 
 ### A.5 Agentes del plan v1
 

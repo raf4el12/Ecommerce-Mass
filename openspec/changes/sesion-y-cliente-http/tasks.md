@@ -37,7 +37,7 @@
 - [ ] 2.1 **IMPL**: `src/features/auth/api.ts` (`design.md` §6).
 - [ ] 2.2 **IMPL**: Migrar `components/auth/{LoginForm,OTPVerificationForm,RegisterForm}.jsx`, `admin/components/{AdminLogin,SetupAdmin}.jsx`. `AdminLogin` usa `useUsuario().login(data, true)` (SES.2).
 - [ ] 2.3 **TEST**: `tests/unit/admin/AdminRoute.test.tsx`: ADM.3, ADM.4, ADM.5 (con `Sidebar`) y ADM.6.
-- [ ] 2.4 **IMPL**: `menuConfig.js`: agregar `moduloDeRuta` y `primeraRutaPermitida`; quitar `getAdminInfo` (consumidores → `session`). Reescribir `AdminRoute.jsx` (`design.md` §5).
+- [ ] 2.4 **IMPL**: `menuConfig.js`: agregar `moduloDeRuta` y `primeraRutaPermitida`; quitar `getAdminInfo` (consumidores → `session`). Reescribir `AdminRoute.jsx` (`design.md` §5). Quitar el mapa `moduloRuta` de `Dashboard.jsx:74-84` y verificar con grep que no queda ningún otro mapa ruta → módulo fuera de `menuConfig.js` (ADM.1).
 - [ ] 2.5 **IMPL**: `Sidebar.jsx`, `Dashboard.jsx` (sin su verificación propia), `admin/components/Header.jsx` y `components/layout/PublicHeader.jsx` → `usePermisos()` y `useUsuario()`.
 - [ ] 2.6 **VERIFY** (manual): login de admin → aparece logueado también en la tienda (SES.2); logout desde el sidebar → `/admin/dashboard` redirige a `/admin/login` (SES.4); un usuario solo con `PRODUCTOS` → `/admin/usuarios` lo redirige (ADM.3); en DevTools hay 1 request a `me/modulos` (ADM.2); un navegador con `adminToken` viejo conserva la sesión (SES.3).
 
@@ -49,6 +49,7 @@
 
 ## Fase 4 (WU3b): Checkout y perfil
 
+- [ ] 4.0 **TEST + IMPL** (backend): `test/integration/clientes-me.test.ts` (token con `{ userId }` → 200) y parche `payload.userId ?? payload.id` en `cliente.controller.ts:18,119` (`design.md` §8). Debe desplegarse antes o junto con este work unit.
 - [ ] 4.1 **IMPL**: `src/features/checkout/api.ts` y `src/features/perfil/api.ts`.
 - [ ] 4.2 **IMPL**: Migrar `components/checkout/services/{checkoutService,paymentService}.js` (quitar los parámetros `userToken` y el `API_URL` propio), `components/checkout/hooks/{useCheckoutData,useCheckoutForm}.js` (quitar `usuario?.token`, línea 248), `components/checkout/components/OrderSummary.jsx`, `components/checkout/steps/Step1Shipping.jsx` (`assetUrl`) y `pages/CheckoutSuccess.jsx`.
 - [ ] 4.3 **IMPL**: Migrar `components/perfil/{profile,direccion,metodopago,orders}.jsx` y `pages/Perfil.jsx`. `refrescarUsuarioDesdeAPI` usa `perfilApi`.
@@ -65,8 +66,8 @@
 
 - [ ] 6.1 **IMPL**: `src/features/admin/{usuarios,permisos,estados,metodos-pago,tiendas,master-table,pedidos,dashboard}/api.ts`.
 - [ ] 6.2 **IMPL**: Migrar `GestionUsuarios.jsx`, `CrearAdmin.jsx`, `GestionPermisos.jsx`, `GestionEstados.jsx`, `GestionMetodoPago.jsx`, `GestionTienda.jsx`, `ReportesPedidos.jsx`, `Dashboard.jsx` (estadísticas) y `hooks/useMasterTable.js`.
-- [ ] 6.3 **IMPL**: Reglas de ESLint `no-restricted-globals` (fetch) y `no-restricted-imports` (axios, con override en `client.ts`). Agregar el paso "Sin llamadas HTTP directas" a `frontend.yml` (`design.md` §7).
-- [ ] 6.4 **VERIFY**: `grep -rnE "fetch\(|localhost:[0-9]" src` → vacío. `import axios` solo en `client.ts`. En el PR, provocar a propósito un `fetch(` en un commit temporal y comprobar que el CI falla (HTTP.11); luego revertirlo.
+- [ ] 6.3 **IMPL**: Bloque de ESLint para `.ts/.tsx` con `typescript-eslint`. Reglas `no-restricted-globals` (fetch) y `no-restricted-imports` (axios) en JS y TS, con override en `src/shared/api/**`. Agregar el paso "Sin llamadas HTTP directas" a `frontend.yml` tal como está en `design.md` §7 (sin `! grep`).
+- [ ] 6.4 **VERIFY**: `grep -rnE "fetch\(|localhost:[0-9]|from ['\"]axios['\"]" src | grep -v '^src/shared/api/'` → vacío. En el PR, provocar a propósito un `fetch(` en un commit temporal y comprobar que el CI falla (HTTP.11); luego revertirlo.
 - [ ] 6.5 **VERIFY** (manual): CRUD de cada pantalla del admin, reordenar estados, asignar permisos a un rol, crear un admin, ver el detalle de un pedido y cambiarle el estado, master-table con jerarquía, dashboard.
 
 ## Fase 7: Cierre
