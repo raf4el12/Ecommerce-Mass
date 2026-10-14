@@ -64,6 +64,16 @@ El backend MUST validar las variables de entorno con un esquema Zod antes de con
 - THEN la respuesta incluye `Access-Control-Allow-Origin: https://a.example`
 - AND con `Origin: https://c.example` la respuesta NO incluye ese header
 
+### Requirement: Secretos propios del proyecto
+
+Las llaves JWT, `JWT_SECRET` y las credenciales de MercadoPago MUST ser propias de este proyecto, y MUST NOT coincidir con las publicadas en el repo público del equipo original (`GG-IM/TIENDAS_MASS_ADMIN`), del que se copió el código. Producción SHOULD usar un par de llaves distinto del de desarrollo. La comparación se hace por huella o por hash, nunca mostrando valores.
+
+#### Scenario: CONF.6 — Llave pública distinta de la publicada
+
+- GIVEN la llave pública que usa un entorno (local o producción)
+- WHEN se calcula `openssl pkey -pubin -in public.key -outform DER | sha256sum`
+- THEN la huella NO es `213399b8806768dc83638c21acbd610cb99e98b95b55d0118ad7e945deda20da`
+
 ### Requirement: CI/CD desde la raíz del monorepo
 
 Los workflows MUST estar en `.github/workflows/` de la raíz y filtrar por la ruta de cada app. Cada PR a `main` MUST ejecutar la verificación de la app que modifica. El deploy MUST ejecutarse solo en push a `main` o a mano (`workflow_dispatch`), y solo si la verificación pasó.

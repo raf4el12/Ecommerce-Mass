@@ -222,7 +222,7 @@ Orden por olas. Dentro de una ola, los changes sin dependencia entre sí pueden 
 
 | # | Change | Ola | Alcance | ¿Cambia comportamiento observable? | Depende de | Artefactos |
 |---|---|---|---|---|---|---|
-| 1 | [`estabilizar-base`](openspec/changes/estabilizar-base/) | 0 · Base | back + front + CI | Solo corrige bugs (build, caída del servidor por Zod) y borra código muerto | — | proposal · specs · design · tasks |
+| 1 | [`estabilizar-base`](openspec/changes/estabilizar-base/) | 0 · Base | back + front + CI | Solo corrige bugs (build, caída del servidor por Zod), cambia los secretos heredados y borra código muerto | — | proposal · specs · design · tasks |
 | 2 | [`sesion-y-cliente-http`](openspec/changes/sesion-y-cliente-http/) | 0 · Base | front | Mínimo: sesión única (desaparece `adminToken`); todas las requests llevan el token | 1 | proposal · specs · design · tasks |
 | 3 | [`hardening-seguridad`](openspec/changes/hardening-seguridad/) | 0 · Base | back + front | **Sí, a propósito**: auth en rutas, login unificado, pagos desde el servidor, endpoints inseguros eliminados | 1, 2 | proposal · specs · design · tasks |
 | 4 | [`migraciones-bd`](openspec/changes/migraciones-bd/) | 1 · Cimientos | back | No | 1 | proposal |
@@ -333,3 +333,9 @@ Auditoría de solo lectura sobre la rama `refactor/clean-arch`. Las rutas son re
 ### A.5 Agentes del plan v1
 
 `.claude/agents/{repository-architect,service-migrator,di-wiring,api-unifier,component-splitter,cleanup-engineer}.md` y `.agents/skills/` implementan las fases horizontales del v1 y **contradicen este plan** (por ejemplo, repositorio interfaz+impl por entidad, o tsyringe). No hay que usarlos. Se archivan o se reescriben como parte de `limpieza-final`, o antes si alguien lo pide.
+
+### A.6 Origen del código y secretos heredados (2026-10-13)
+
+- **No es un fork.** El commit raíz `22a865c` es una copia sin historial del monorepo público `GG-IM/TIENDAS_MASS_ADMIN` del equipo original (Jim Fernandez y otras 4 personas), aproximadamente en su commit `1ab5bd8` (2026-04-29): 187 de 297 archivos idénticos. A eso se sumó el rediseño propio. A su vez, ese monorepo vino de `GG-IM/TiendasMassBack` y `GG-IM/TiendasMassFront`, descargados como ZIP (de ahí el sufijo `-main`). El equipo tiene commits posteriores. Sin historia común, traerlos solo se puede a mano.
+- **Secretos.** Ese repo público tiene commiteados sus `.env` y `src/keys/`. Las llaves JWT, `JWT_SECRET` y las credenciales de MercadoPago locales eran las mismas. Las llaves y `JWT_SECRET` se cambiaron en local el 2026-10-13. Lo que falta está en `estabilizar-base` (`design.md` §9, tareas 0.5, 0.6, 2.9 y 2.10).
+- **Licencia.** Ninguno de los repos tiene `LICENSE`.

@@ -22,6 +22,10 @@
 
 - [x] 0.1 Commitear por separado los cambios locales pendientes (hecho en `660ed4b` y `3d25d36`).
 - [ ] 0.2 Verificar que `docker compose up -d` levanta MySQL y que `npm run dev` arranca. Anotar el estado inicial en `state.yaml`.
+- [x] 0.3 Cambiar las llaves JWT locales: par RSA 2048 nuevo en `src/keys/` (privada con permisos 600) y copias de `dist/keys/` actualizadas. Verificado con `jsonwebtoken` y con el middleware `verificarToken` real; huella distinta de la comprometida (CONF.6). Hecho el 2026-10-13 (`design.md` §9).
+- [x] 0.4 Cambiar `JWT_SECRET` en el `.env` local y dejar el archivo con permisos 600. Hecho el 2026-10-13.
+- [ ] 0.5 **MANUAL**: Crear credenciales propias de MercadoPago (de prueba para desarrollo) y reemplazar `MP_ACCESS_TOKEN` en el `.env` del backend y `VITE_MP_PUBLIC_KEY`/`VITE_PUBLIC_KEY` en el del frontend.
+- [ ] 0.6 **MANUAL**: Avisar al equipo original (`GG-IM`) que su repo público expone sus `.env` y `src/keys/`, para que cambien sus credenciales y limpien el historial.
 
 ## Fase 1 (WU1): Build verde y tests del backend
 
@@ -43,11 +47,11 @@
 - [ ] 2.3 **IMPL**: Migrar a `env` los consumidores: `config/data-source.ts`, `middlewares/verificarToken.ts`, `controllers/auth.controller.ts` y `controllers/usuarios.controller.ts`.
 - [ ] 2.4 **TEST**: `test/smoke/cors.test.ts` (CONF.5).
 - [ ] 2.5 **IMPL**: CORS en `createApp()` desde `env.corsOrigins`.
-- [ ] 2.6 **IMPL**: Actualizar `.env.example` (`NODE_ENV`, `CORS_ORIGINS`, `JWT_*_B64` con el comando para generarlas; `JWT_SECRET` marcado como obsoleto).
+- [ ] 2.6 **IMPL**: Actualizar `.env.example` (`NODE_ENV`, `CORS_ORIGINS`, `JWT_*_B64` con el comando para generarlas; `JWT_SECRET` marcado como obsoleto). Incluir los comandos para generar un par propio (`openssl genpkey …` y `openssl pkey -pubout …`) y la regla de no copiar `.env` ni llaves de otro repo.
 - [ ] 2.7 **IMPL**: Crear `.github/workflows/backend.yml` y `frontend.yml` según `design.md` §7, y `TiendasMassFront-main/public/staticwebapp.config.json`.
 - [ ] 2.8 **IMPL**: Borrar `TiendasMassBack-main/.github/` y `TiendasMassFront-main/.github/`.
-- [ ] 2.9 **MANUAL**: Configurar los secrets y variables en GitHub y las app settings en Azure (`design.md` §7). Definir la URL pública del backend para `VITE_API_URL`.
-- [ ] 2.10 **VERIFY**: En el PR de WU2 corren ambos workflows (toca las dos apps): confirmar los pasos de CI.2 y CI.3. Agregar un commit temporal con un error de tipos y comprobar que `verify` falla (BUILD.2); luego revertirlo. Tras el merge, primer deploy con `workflow_dispatch` (CI.4) y probar `/health` en Azure.
+- [ ] 2.9 **MANUAL**: Configurar los secrets y variables en GitHub y las app settings en Azure (`design.md` §7). Definir la URL pública del backend para `VITE_API_URL`. Para producción, generar un par de llaves **distinto** del local y cargarlo como `JWT_*_B64`, y usar credenciales propias de MercadoPago (`design.md` §9).
+- [ ] 2.10 **VERIFY**: En el PR de WU2 corren ambos workflows (toca las dos apps): confirmar los pasos de CI.2 y CI.3. Agregar un commit temporal con un error de tipos y comprobar que `verify` falla (BUILD.2); luego revertirlo. Tras el merge, primer deploy con `workflow_dispatch` (CI.4) y probar `/health` en Azure. Comprobar que la huella de la llave pública de producción no es la comprometida (CONF.6).
 
 ## Fase 3 (WU3): Tooling del frontend
 

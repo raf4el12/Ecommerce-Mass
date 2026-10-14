@@ -234,6 +234,36 @@ jobs:
 - `typescript` pasa a devDependencies. Se quita `mercadopago`: es el SDK de Node y el front ya usa `@mercadopago/sdk-react`.
 - `test-results/` sale de git y entra al `.gitignore` del front, junto con `.env` y `coverage/`.
 
+## 9. Secretos heredados del repo público del equipo original
+
+**Hallazgo (2026-10-13).** Este repo no es un fork: el commit raíz `22a865c` es una copia sin historial del monorepo público `GG-IM/TIENDAS_MASS_ADMIN`, aproximadamente en su commit `1ab5bd8`. Ese repo tiene commiteados `TiendasMassBack-main/.env`, `TiendasMassFront-main/.env` y `TiendasMassBack-main/src/keys/*`. Comparación por hash, sin mostrar valores:
+
+| Secreto local | Situación antes de la rotación |
+|---|---|
+| `src/keys/private.key` y `public.key` | Idénticas a las publicadas (mismo blob SHA) |
+| `JWT_SECRET` | Mismo valor que el publicado |
+| `MP_ACCESS_TOKEN` (back) y llaves públicas de MercadoPago (front, `.env` idéntico) | Mismos valores, de la cuenta de MercadoPago del equipo original (formato `APP_USR-`) |
+| `DB_PASS`, `EMAIL_PASSWORD` | Distintos de los publicados |
+| Historial de `raf4el12/Ecommerce-Mass` | No contiene ningún `.env`, `.key` ni `.pem` (verificado en todas las ramas) |
+
+**Hecho en local el 2026-10-13:**
+
+- Par RSA 2048 nuevo en formato PKCS#8/SPKI, igual que el anterior (`openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048` + `openssl pkey -pubout`). La privada quedó con permisos 600. Se actualizaron las 4 copias de `dist/keys/` (incluida la anidada `dist/keys/keys/`, que dejó el script de build anterior).
+- Verificación: firma y verificación RS256 con el `jsonwebtoken` del backend. El middleware real `verificarToken` acepta los tokens firmados con la llave nueva y rechaza (403) los firmados con otra.
+- `JWT_SECRET` nuevo (`secrets.token_urlsafe(48)`); solo cambió esa línea del `.env`. El `.env` quedó con permisos 600.
+- Huella SHA-256 (DER) de la llave pública **comprometida**: `213399b8806768dc83638c21acbd610cb99e98b95b55d0118ad7e945deda20da`.
+- Huella de la llave pública **local nueva**: `72f70324b4d0aa160e478b4c794a2265c6c886353f498346471cc5113b4edc2e`. Producción debe usar otra, distinta de las dos.
+
+**Pendiente (MANUAL):**
+
+- Credenciales propias de MercadoPago: `MP_ACCESS_TOKEN` en el back y `VITE_MP_PUBLIC_KEY`/`VITE_PUBLIC_KEY` en el front. Se cambian juntas porque son de la misma cuenta. Hasta entonces, el entorno local cobra en la cuenta del equipo original.
+- Producción: generar un par de llaves aparte, cargarlo como `JWT_*_B64` (tarea 2.9) y verificar CONF.6 (tarea 2.10).
+- Avisar al equipo original que su repo expone esos archivos, para que cambien sus credenciales y limpien el historial.
+
+**Regla:** nunca copiar `.env` ni `src/keys/` desde otro repo. `.env.example` documenta cómo generar un par propio.
+
+`combined-certificates.crt.pem` no se rota: son 3 certificados raíz públicos (DigiCert Global Root CA, DigiCert Global Root G2 y Microsoft RSA Root Certificate Authority 2017), los de SSL de Azure MySQL. No es secreto y hoy ningún archivo lo usa.
+
 ## Archivos
 
 | Archivo | Acción |
@@ -262,6 +292,7 @@ jobs:
 | BUILD.2 | Manual en el PR de WU2: un commit temporal con un error de tipos hace fallar `verify` (luego se revierte) |
 | CONF.1 a CONF.4 | `test/unit/env.test.ts`: `parseEnv(raw, { keysDir })` con distintos objetos de entorno; CONF.3 escribe PEM temporales en `os.tmpdir()` |
 | CONF.5 | `test/smoke/cors.test.ts` con supertest y el header `Origin` |
+| CONF.6 | Manual: huella de la llave pública en local (tarea 0.3) y en producción (tarea 2.10) |
 | VAL.1 a VAL.3 | `test/smoke/productos.test.ts`, `test/smoke/validate.test.ts` |
 | TEST.1 a TEST.3 | `test/smoke/health.test.ts` + guard del setup (verificado a mano con `DB_NAME=tiendasmass`) |
 | TEST.4, TEST.5 | `npm test` del front |

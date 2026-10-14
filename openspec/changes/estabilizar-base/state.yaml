@@ -30,6 +30,7 @@ phases:
   apply:
     status: pending
     branch: refactor/clean-arch
+    note: "Fase 0: 0.1, 0.3 y 0.4 hechas (2026-10-13: commits previos separados; llaves JWT y JWT_SECRET locales cambiados). Pendientes MANUAL: 0.5 (MercadoPago propio) y 0.6 (avisar a GG-IM)."
   verify:
     status: pending
   archive:

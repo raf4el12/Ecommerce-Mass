@@ -4,6 +4,8 @@
 
 Hoy el backend no compila (`npx tsc` falla), una petición con datos inválidos tumba el proceso, el deploy no corre desde el monorepo y no hay ninguna red de tests. Ningún refactor puede arrancar así. Este change deja una base que compila, arranca con configuración validada, se verifica en CI y tiene la infraestructura de tests que usarán todos los changes siguientes. También borra el código muerto, para no migrar después lo que nadie usa.
 
+Además, cambia los secretos heredados. El código es una copia del repo público del equipo original (`GG-IM/TIENDAS_MASS_ADMIN`), que tiene commiteados sus `.env` y `src/keys/`. Las llaves JWT, `JWT_SECRET` y las credenciales de MercadoPago con las que llegó el proyecto son las mismas que ahí están publicadas.
+
 ## ¿Cambia comportamiento observable?
 
 Solo corrige defectos. No cambia ningún endpoint, payload ni pantalla.
@@ -14,6 +16,7 @@ Solo corrige defectos. No cambia ningún endpoint, payload ni pantalla.
 | El backend lee las llaves JWT de `src/keys/*.key` (fuera de git): en CI/Azure caería al arrancar | Lee las llaves de variables de entorno. En desarrollo sigue funcionando el fallback a `src/keys` |
 | Variables de entorno sin validar, con valores de respaldo inseguros (`root/root`) | El proceso no arranca si falta una variable obligatoria y dice cuál |
 | Orígenes de CORS hardcodeados (el de ngrok con un espacio al final, nunca coincide) | Orígenes desde `CORS_ORIGINS`, con el mismo default local de hoy |
+| Llaves JWT y `JWT_SECRET` idénticas a las publicadas en `GG-IM/TIENDAS_MASS_ADMIN`: cualquiera puede firmar tokens válidos | Secretos propios (en local ya cambiados el 2026-10-13). Los tokens emitidos con las llaves anteriores dejan de valer |
 
 ## Alcance
 
@@ -26,6 +29,7 @@ Solo corrige defectos. No cambia ningún endpoint, payload ni pantalla.
 - Backend: vitest (transformando con SWC para que TypeORM reciba la metadata de decoradores) + supertest + base de datos de test `tiendasmass_test` + smoke tests.
 - Frontend: bloque `test` en `vite.config.js`, jsdom + Testing Library, `tsconfig.json` con `allowJs` (ADR-11). `typescript` pasa a devDependencies y se quita `mercadopago` (SDK de Node) de las dependencias del front.
 - Workflows en `.github/workflows/` de la raíz, con filtros por ruta: verificación en cada PR y deploy en push a `main`.
+- Cambiar los secretos heredados (`design.md` §9): llaves JWT y `JWT_SECRET` (hecho en local), credenciales de MercadoPago (MANUAL) y un par de llaves de producción generado de cero.
 - Borrar el código muerto verificado (23 archivos del front, 6 del backend, el montaje duplicado de `tarjetas-usuario` y las dependencias sin uso) y sacar `test-results/` de git.
 
 ### Excluido
@@ -77,6 +81,7 @@ Solo corrige defectos. No cambia ningún endpoint, payload ni pantalla.
 | `npm start` deja de funcionar al pasar el entrypoint a `dist/server.js` | Media | Actualizar `main`/`start`/`dev` en el mismo commit |
 | Se borra un archivo que se carga de forma dinámica | Baja | grep de imports, `url()` en CSS y `index.html`, `npm run build` y navegación manual por las rutas principales |
 | La base de test pisa la de desarrollo | Baja | `test/setup` aborta si `DB_NAME` no termina en `_test` |
+| Se vuelve a desplegar con las llaves publicadas (por ejemplo, copiándolas otra vez del repo del equipo) | Baja | Verificación de la huella de la llave pública en cada entorno (CONF.6) |
 
 ## Plan de rollback
 
@@ -98,3 +103,4 @@ Solo corrige defectos. No cambia ningún endpoint, payload ni pantalla.
 - [ ] `POST /api/products` con un body inválido responde 400 y luego `GET /health` responde 200.
 - [ ] Un PR a `main` dispara solo el workflow de la app que tocó; un push a `main` despliega (después de la tarea MANUAL).
 - [ ] No queda ningún archivo de la lista de código muerto; `npm run build` del front pasa.
+- [ ] Ningún secreto en uso coincide con los publicados en `GG-IM/TIENDAS_MASS_ADMIN` (CONF.6).
